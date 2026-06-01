@@ -824,6 +824,12 @@ for(var i=0;i<18;i++){
   </div>
   <div class="header-right">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+    <select id="chainSelectSB" onchange="switchChainSB()" style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">
+      <option value="robinhood">Robinhood</option>
+      <option value="arc">ARC</option>
+      <option value="giwa">GIWA</option>
+      <option value="ink">INK Sepolia</option>
+    </select>
     <div class="network-badge" id="networkBadge">
       <div class="network-badge-dot"></div>
       <span id="networkName">Robinhood</span>
@@ -1156,6 +1162,41 @@ try {
   const savedTx = localStorage.getItem('ryuSwapTx');
   if(savedTx) txLog = JSON.parse(savedTx);
 } catch(e){}
+
+// ========== REAL BALANCES ==========
+async function loadRealBalances() {
+  if(!walletAddress || !provider) return;
+  try {
+    // From token balance
+    if(fromToken.address === 'native') {
+      const bal = await provider.getBalance(walletAddress);
+      document.getElementById('fromBalance').textContent = parseFloat(ethers.formatEther(bal)).toFixed(4) + ' ' + fromToken.symbol;
+    } else {
+      const chain = CHAINS[currentChain];
+      let addr = fromToken.address === 'ryu' ? chain.ryuAddress : fromToken.address;
+      if(addr) {
+        const c = new ethers.Contract(addr, ["function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)"], provider);
+        const [bal, dec] = await Promise.all([c.balanceOf(walletAddress), c.decimals()]);
+        document.getElementById('fromBalance').textContent = parseFloat(ethers.formatUnits(bal, dec)).toFixed(4) + ' ' + fromToken.symbol;
+      }
+    }
+    // To token balance
+    if(toToken.address === 'native') {
+      const bal = await provider.getBalance(walletAddress);
+      document.getElementById('toBalance').textContent = parseFloat(ethers.formatEther(bal)).toFixed(4) + ' ' + toToken.symbol;
+    } else {
+      const chain = CHAINS[currentChain];
+      let addr = toToken.address === 'ryu' ? chain.ryuAddress : toToken.address;
+      if(addr) {
+        const c = new ethers.Contract(addr, ["function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)"], provider);
+        const [bal, dec] = await Promise.all([c.balanceOf(walletAddress), c.decimals()]);
+        document.getElementById('toBalance').textContent = parseFloat(ethers.formatUnits(bal, dec)).toFixed(4) + ' ' + toToken.symbol;
+      }
+    }
+  } catch(e) {
+    console.error('Balance load error:', e.message);
+  }
+}
 
 // ========== RYU FAUCET ==========
 function initRyuContract() {
@@ -1498,10 +1539,35 @@ function calcOutput() {
 }
 
 // ========== MAX ==========
-function setMax() {
-  document.getElementById('fromAmount').value = '0.1';
-  calcOutput();
-  showToast('Max set (mock balance)');
+async function setMax() {
+  if(!walletAddress || !provider) {
+    showToast('Connect wallet first');
+    return;
+  }
+  try {
+    if(fromToken.address === 'native') {
+      const balance = await provider.getBalance(walletAddress);
+      const formatted = parseFloat(ethers.formatEther(balance)).toFixed(6);
+      document.getElementById('fromAmount').value = formatted;
+    } else {
+      const tokenAbi = ["function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)"];
+      const chain = CHAINS[currentChain];
+      let tokenAddress = null;
+      if(fromToken.address === 'ryu') tokenAddress = chain.ryuAddress;
+      else tokenAddress = fromToken.address;
+      if(!tokenAddress) { showToast('Token not available on this chain'); return; }
+      const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, provider);
+      const [balance, decimals] = await Promise.all([
+        tokenContract.balanceOf(walletAddress),
+        tokenContract.decimals()
+      ]);
+      const formatted = parseFloat(ethers.formatUnits(balance, decimals)).toFixed(6);
+      document.getElementById('fromAmount').value = formatted;
+    }
+    calcOutput();
+  } catch(e) {
+    showToast('Error reading balance');
+  }
 }
 
 // ========== ACTION BTN ==========
@@ -1670,12 +1736,12 @@ window.addEventListener('load', function() {
       if(matched) {
         currentChain = matched[0];
         document.getElementById('networkName').textContent = matched[1].name;
+        document.getElementById('chainSelectSB').value = matched[0];
         if(currentMode === 'bridge') fromChain = currentChain;
         updateActionBtn();
         showToast('Switched to ' + matched[1].name);
         if(walletAddress) initRyuContract();
       } else {
-        // User switched to unsupported chain
         document.getElementById('networkName').textContent = 'Unsupported';
         showToast('⚠️ Please switch to a supported testnet!');
         updateActionBtn();
@@ -1683,6 +1749,21 @@ window.addEventListener('load', function() {
     });
   }
 });
+
+// ========== CHAIN SWITCH ==========
+async function switchChainSB() {
+  const sel = document.getElementById('chainSelectSB').value;
+  if(sel === currentChain) return;
+  if(!walletAddress) {
+    // Just update UI without wallet
+    currentChain = sel;
+    document.getElementById('networkName').textContent = CHAINS[sel].name;
+    if(currentMode === 'bridge') fromChain = sel;
+    updateActionBtn();
+    return;
+  }
+  await switchToChain(sel);
+}
 
 // ========== THEME TOGGLE ==========
 function toggleTheme() {
