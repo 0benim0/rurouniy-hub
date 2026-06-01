@@ -1184,21 +1184,36 @@ try {
 async function getTokenBalance(token, chainKey) {
   if(!walletAddress) return '—';
   try {
-    const chainRpc = new ethers.JsonRpcProvider(CHAINS[chainKey].rpc);
-    if(token.address === 'native') {
-      const bal = await chainRpc.getBalance(walletAddress);
-      return parseFloat(ethers.formatEther(bal)).toFixed(4);
-    } else {
-      const chain = CHAINS[chainKey];
-      let addr = token.address === 'ryu' ? chain.ryuAddress : token.address;
-      if(!addr) return '—';
-      const c = new ethers.Contract(addr, [
-        "function balanceOf(address) view returns (uint256)",
-        "function decimals() view returns (uint8)"
-      ], chainRpc);
-      const [bal, dec] = await Promise.all([c.balanceOf(walletAddress), c.decimals()]);
-      return parseFloat(ethers.formatUnits(bal, dec)).toFixed(4);
-    }
+    const chainData = CHAINS[chainKey];
+    if(!chainData) return '—';
+
+    // Use a timeout to avoid hanging
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 8000)
+    );
+
+    const fetchBalance = async () => {
+      const chainRpc = new ethers.JsonRpcProvider(chainData.rpc);
+
+      if(token.address === 'native') {
+        const bal = await chainRpc.getBalance(walletAddress);
+        return parseFloat(ethers.formatEther(bal)).toFixed(4);
+      } else {
+        let addr = token.address === 'ryu' ? chainData.ryuAddress : token.address;
+        if(!addr) return '—';
+        const c = new ethers.Contract(addr, [
+          "function balanceOf(address) view returns (uint256)",
+          "function decimals() view returns (uint8)"
+        ], chainRpc);
+        const [bal, dec] = await Promise.all([
+          c.balanceOf(walletAddress),
+          c.decimals()
+        ]);
+        return parseFloat(ethers.formatUnits(bal, dec)).toFixed(4);
+      }
+    };
+
+    return await Promise.race([fetchBalance(), timeout]);
   } catch(e) {
     return '—';
   }
@@ -1206,18 +1221,21 @@ async function getTokenBalance(token, chainKey) {
 
 async function loadRealBalances() {
   if(!walletAddress) return;
-  // For swap: use currentChain for both
-  // For bridge: use fromChain for from, toChain for to
+
   const fromChainKey = currentMode === 'bridge' ? fromChain : currentChain;
-  const toChainKey = currentMode === 'bridge' ? toChain : currentChain;
+  const toChainKey   = currentMode === 'bridge' ? toChain   : currentChain;
 
-  const [fromBal, toBal] = await Promise.all([
-    getTokenBalance(fromToken, fromChainKey),
-    getTokenBalance(toToken, toChainKey)
-  ]);
+  // Show loading state
+  document.getElementById('fromBalance').textContent = 'loading...';
+  document.getElementById('toBalance').textContent = 'loading...';
 
-  document.getElementById('fromBalance').textContent = fromBal + ' ' + fromToken.symbol;
-  document.getElementById('toBalance').textContent = toBal + ' ' + toToken.symbol;
+  // Load independently so one failure doesn't block the other
+  getTokenBalance(fromToken, fromChainKey).then(bal => {
+    document.getElementById('fromBalance').textContent = bal + ' ' + fromToken.symbol;
+  });
+  getTokenBalance(toToken, toChainKey).then(bal => {
+    document.getElementById('toBalance').textContent = bal + ' ' + toToken.symbol;
+  });
 }
 
 // ========== RYU FAUCET ==========
