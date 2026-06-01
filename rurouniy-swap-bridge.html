@@ -1213,6 +1213,7 @@ let slippage = '0.1';
 let txLog = [];
 let stats = { swaps: 0, bridges: 0, volume: 0 };
 let faucetTimer = null;
+let isBridging = false;
 
 // Load from localStorage
 try {
@@ -1591,8 +1592,8 @@ function selectChain(key) {
     // Sync header dropdown with fromChain
     currentChain = key;
     document.getElementById('chainSelectSB').value = key;
-    // Switch wallet chain too
-    if(walletAddress) switchToChain(key);
+    // Only switch wallet chain if not currently bridging
+    if(walletAddress && !isBridging) switchToChain(key);
   } else {
     toChain = key;
     if(toChain === fromChain) {
@@ -1871,7 +1872,7 @@ async function doBridge(amt) {
 
   // Warn if tokens are different
   if(fromToken.symbol !== toToken.symbol) {
-    showToast('⚠️ Bridge requires same token on both sides. Use Swap first, then Bridge.');
+    showToast('⚠️ Bridge requires same token on both sides.');
     document.getElementById('actionBtn').disabled = false;
     document.getElementById('actionBtn').innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
     return;
@@ -1880,10 +1881,9 @@ async function doBridge(amt) {
   const btn = document.getElementById('actionBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Processing...';
+  isBridging = true;
 
   try {
-    const amountStr = document.getElementById('fromAmount').value;
-
     // ARC → use CCTP for USDC
     if(currentChain === 'arc' && fromToken.symbol === 'USDC') {
       await doCCTPBridge(amt, chain);
@@ -1891,9 +1891,16 @@ async function doBridge(amt) {
       await doLockMintBridge(amt, chain);
     }
   } catch(e) {
-    showToast('Error: ' + (e.message || '').slice(0, 60));
+    const msg = e.message || '';
+    if(msg.includes('network changed') || msg.includes('NE')) {
+      showToast('⚠️ Network changed during bridge — TX may still complete. Check explorer!');
+    } else {
+      showToast('Error: ' + msg.slice(0, 60));
+    }
     btn.disabled = false;
     btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
+  } finally {
+    isBridging = false;
   }
 }
 
@@ -2060,10 +2067,10 @@ window.addEventListener('load', function() {
 async function switchChainSB() {
   const sel = document.getElementById('chainSelectSB').value;
   if(sel === currentChain) return;
+  if(isBridging) { showToast('Please wait for bridge to complete'); document.getElementById('chainSelectSB').value = currentChain; return; }
   currentChain = sel;
   if(currentMode === 'bridge') {
     fromChain = sel;
-    // Make sure toChain is different
     if(toChain === fromChain) {
       toChain = Object.keys(CHAINS).find(k => k !== sel) || 'arc';
     }
