@@ -1226,15 +1226,25 @@ async function loadRealBalances() {
   const toChainKey   = currentMode === 'bridge' ? toChain   : currentChain;
 
   // Show loading state
-  document.getElementById('fromBalance').textContent = 'loading...';
-  document.getElementById('toBalance').textContent = 'loading...';
+  const fbEl = document.getElementById('fromBalance');
+  const tbEl = document.getElementById('toBalance');
+  if(fbEl) fbEl.textContent = 'loading...';
+  if(tbEl) tbEl.textContent = 'loading...';
 
   // Load independently so one failure doesn't block the other
   getTokenBalance(fromToken, fromChainKey).then(bal => {
-    document.getElementById('fromBalance').textContent = bal + ' ' + fromToken.symbol;
+    const el = document.getElementById('fromBalance');
+    if(el) el.textContent = bal + ' ' + fromToken.symbol;
+  }).catch(() => {
+    const el = document.getElementById('fromBalance');
+    if(el) el.textContent = '—';
   });
   getTokenBalance(toToken, toChainKey).then(bal => {
-    document.getElementById('toBalance').textContent = bal + ' ' + toToken.symbol;
+    const el = document.getElementById('toBalance');
+    if(el) el.textContent = bal + ' ' + toToken.symbol;
+  }).catch(() => {
+    const el = document.getElementById('toBalance');
+    if(el) el.textContent = '—';
   });
 }
 
@@ -1332,6 +1342,7 @@ async function claimFaucet() {
 // ========== UTILS ==========
 function showToast(msg) {
   const t = document.getElementById('toast');
+  if(!t) return;
   t.textContent = msg; t.classList.add('show');
   clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3500);
 }
@@ -1340,9 +1351,12 @@ function saveStats() {
   localStorage.setItem('ryuSwapTx', JSON.stringify(txLog.slice(0,20)));
 }
 function updateStatsDisplay() {
-  document.getElementById('statSwaps').textContent = stats.swaps;
-  document.getElementById('statBridges').textContent = stats.bridges;
-  document.getElementById('statVolume').textContent = '$' + stats.volume.toLocaleString();
+  const s = document.getElementById('statSwaps');
+  const b = document.getElementById('statBridges');
+  const v = document.getElementById('statVolume');
+  if(s) s.textContent = stats.swaps;
+  if(b) b.textContent = stats.bridges;
+  if(v) v.textContent = '$' + stats.volume.toLocaleString();
 }
 function renderTxLog() {
   const el = document.getElementById('txLog');
