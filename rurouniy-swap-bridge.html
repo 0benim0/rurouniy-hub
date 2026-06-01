@@ -893,7 +893,7 @@ for(var i=0;i<18;i++){
           <div class="token-chevron">▼</div>
         </button>
         <div class="token-amount-wrap">
-          <input type="number" class="token-input" id="fromAmount" placeholder="0.00" min="0" oninput="calcOutput()">
+          <input type="number" class="token-input" id="fromAmount" placeholder="0.00" min="0" step="any" oninput="calcOutput()">
           <div class="token-usd" id="fromUsd">≈ $0.00</div>
           <div class="token-balance">
             Balance: <span id="fromBalance">—</span>
@@ -1232,16 +1232,21 @@ async function loadRealBalances() {
   if(tbEl) tbEl.textContent = 'loading...';
 
   // Load independently so one failure doesn't block the other
-  getTokenBalance(fromToken, fromChainKey).then(bal => {
+  const ft = fromToken;
+  const tt = toToken;
+  const fck = fromChainKey;
+  const tck = toChainKey;
+
+  getTokenBalance(ft, fck).then(bal => {
     const el = document.getElementById('fromBalance');
-    if(el) el.textContent = bal + ' ' + fromToken.symbol;
+    if(el) el.textContent = bal === '—' ? '—' : bal + ' ' + ft.symbol;
   }).catch(() => {
     const el = document.getElementById('fromBalance');
     if(el) el.textContent = '—';
   });
-  getTokenBalance(toToken, toChainKey).then(bal => {
+  getTokenBalance(tt, tck).then(bal => {
     const el = document.getElementById('toBalance');
-    if(el) el.textContent = bal + ' ' + toToken.symbol;
+    if(el) el.textContent = bal === '—' ? '—' : bal + ' ' + tt.symbol;
   }).catch(() => {
     const el = document.getElementById('toBalance');
     if(el) el.textContent = '—';
@@ -1453,6 +1458,10 @@ function filterTokens() {
 }
 function renderTokenList(tokens) {
   const current = currentTokenTarget === 'from' ? fromToken : toToken;
+  const chainKey = currentTokenTarget === 'from'
+    ? (currentMode === 'bridge' ? fromChain : currentChain)
+    : (currentMode === 'bridge' ? toChain : currentChain);
+
   document.getElementById('tokenList').innerHTML = tokens.map(t => `
     <div class="token-list-item ${t.symbol===current.symbol?'selected':''}" onclick="selectToken('${t.symbol}')">
       <div class="tli-icon">${t.icon}</div>
@@ -1461,9 +1470,19 @@ function renderTokenList(tokens) {
         <div class="tli-full">${t.name}</div>
       </div>
       ${t.tag ? `<span class="coming-soon-tag">${t.tag}</span>` : ''}
-      <div class="tli-balance">—</div>
+      <div class="tli-balance" id="tli-bal-${t.symbol}">—</div>
     </div>
   `).join('');
+
+  // Load balances for each token
+  if(walletAddress) {
+    tokens.forEach(t => {
+      getTokenBalance(t, chainKey).then(bal => {
+        const el = document.getElementById('tli-bal-' + t.symbol);
+        if(el) el.textContent = bal === '—' ? '—' : bal + ' ' + t.symbol;
+      }).catch(() => {});
+    });
+  }
 }
 function selectToken(symbol) {
   const token = TOKENS.find(t => t.symbol === symbol);
