@@ -1092,7 +1092,7 @@ const CHAINS = {
     ryuAddress: '0x092D14CF75E9e40DF4FF37775A620F1A6EcE8a13',
     swapAddress: '0x7a77d9fbfDA16A0Bd80Ee8b8CAeE044dd6781119',
     bridgeAddress: '0xa26a06A3e04Ec174c07FB941C4eA1dBff405e9BF',
-    liquidityReady: true
+    liquidityReady: false
   },
   giwa: {
     name: 'GIWA', chainId: '0x164ce', chainIdDec: 91342,
@@ -1864,8 +1864,107 @@ async function doAction() {
 async function doSwap(amt) {
   const chain = CHAINS[currentChain];
   if(!chain.swapAddress) { showToast('Swap contract not available'); return; }
-  if(!chain.liquidityReady) { showToast('Liquidity coming soon!'); return; }
-  showToast('Swap coming soon — liquidity being added!');
+  if(!chain.liquidityReady) { showToast('🔄 Liquidity coming soon!'); return; }
+
+  const btn = document.getElementById('actionBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Swapping...';
+
+  try {
+    const tokenInAddr = fromToken.address === 'ryu' ? chain.ryuAddress : fromToken.address;
+    const tokenOutAddr = toToken.address === 'ryu' ? chain.ryuAddress : toToken.address;
+
+    if(!tokenInAddr || !tokenOutAddr) {
+      showToast('Token not available on this chain');
+      btn.disabled = false;
+      btn.innerHTML = `SWAP ${fromToken.symbol} → ${toToken.symbol}`;
+      return;
+    }
+
+    const SWAP_ABI = [
+      "function swap(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut) external",
+      "function swapETHForToken(address tokenOut, uint256 minAmountOut) external payable",
+      "function swapTokenForETH(address tokenIn, uint256 amountIn, uint256 minAmountOut) external",
+      "function getAmountOut(address tokenIn, address tokenOut, uint256 amountIn) external view returns (uint256 amountOut, uint256 fee)"
+    ];
+    const ERC20_APPROVE_ABI = [
+      "function approve(address spender, uint256 amount) external returns (bool)",
+      "function allowance(address owner, address spender) external view returns (uint256)"
+    ];
+
+    const swapContract = new ethers.Contract(chain.swapAddress, SWAP_ABI, signer);
+
+    if(fromToken.address === 'native') {
+      // ETH → Token
+      const amountBN = ethers.parseEther(amt.toString());
+      btn.innerHTML = '<span class="spinner"></span> Swapping ETH...';
+      const tx = await swapContract.swapETHForToken(tokenOutAddr, 0, { value: amountBN });
+      await tx.wait();
+
+    } else if(toToken.address === 'native') {
+      // Token → ETH
+      const tokenContract = new ethers.Contract(tokenInAddr, ERC20_APPROVE_ABI, signer);
+      const decimals = fromToken.decimals || 18;
+      const amountBN = ethers.parseUnits(amt.toString(), decimals);
+
+      btn.innerHTML = '<span class="spinner"></span> Approving...';
+      const allowance = await tokenContract.allowance(walletAddress, chain.swapAddress);
+      if(allowance < amountBN) {
+        const approveTx = await tokenContract.approve(chain.swapAddress, amountBN);
+        await approveTx.wait();
+      }
+
+      btn.innerHTML = '<span class="spinner"></span> Swapping...';
+      const tx = await swapContract.swapTokenForETH(tokenInAddr, amountBN, 0);
+      await tx.wait();
+
+    } else {
+      // Token → Token
+      const tokenContract = new ethers.Contract(tokenInAddr, ERC20_APPROVE_ABI, signer);
+      const decimals = fromToken.decimals || 18;
+      const amountBN = ethers.parseUnits(amt.toString(), decimals);
+
+      btn.innerHTML = '<span class="spinner"></span> Approving...';
+      const allowance = await tokenContract.allowance(walletAddress, chain.swapAddress);
+      if(allowance < amountBN) {
+        const approveTx = await tokenContract.approve(chain.swapAddress, amountBN);
+        await approveTx.wait();
+      }
+
+      btn.innerHTML = '<span class="spinner"></span> Swapping...';
+      const tx = await swapContract.swap(tokenInAddr, tokenOutAddr, amountBN, 0);
+      await tx.wait();
+    }
+
+    showToast('✅ Swap successful!');
+    stats.swaps++;
+    txLog.unshift({
+      type: 'swap',
+      label: `${amt} ${fromToken.symbol} → ${toToken.symbol}`,
+      time: new Date().toLocaleTimeString(),
+      chain: chain.name || currentChain,
+      status: 'done'
+    });
+    saveStats();
+    updateStatsDisplay();
+    renderTxLog();
+    loadRealBalances();
+    document.getElementById('fromAmount').value = '';
+    document.getElementById('toAmount').value = '';
+
+  } catch(e) {
+    const msg = e.message || '';
+    if(msg.includes('insufficient liquidity')) {
+      showToast('❌ Insufficient liquidity in pool');
+    } else if(msg.includes('slippage')) {
+      showToast('❌ Slippage too high — try smaller amount');
+    } else {
+      showToast('Error: ' + msg.slice(0, 60));
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `SWAP ${fromToken.symbol} → ${toToken.symbol}`;
+  }
 }
 
 async function doBridge(amt) {
