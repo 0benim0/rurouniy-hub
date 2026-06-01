@@ -1214,6 +1214,7 @@ let txLog = [];
 let stats = { swaps: 0, bridges: 0, volume: 0 };
 let faucetTimer = null;
 let isBridging = false;
+let isSwapping = false;
 
 // Load from localStorage
 try {
@@ -1869,6 +1870,7 @@ async function doSwap(amt) {
   const btn = document.getElementById('actionBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Swapping...';
+  isSwapping = true;
 
   try {
     const tokenInAddr = fromToken.address === 'ryu' ? chain.ryuAddress : fromToken.address;
@@ -1958,10 +1960,13 @@ async function doSwap(amt) {
       showToast('❌ Insufficient liquidity in pool');
     } else if(msg.includes('slippage')) {
       showToast('❌ Slippage too high — try smaller amount');
+    } else if(msg.includes('network changed') || msg.includes('NE')) {
+      showToast('⚠️ Network changed — please stay on the same chain during swap');
     } else {
       showToast('Error: ' + msg.slice(0, 60));
     }
   } finally {
+    isSwapping = false;
     btn.disabled = false;
     btn.innerHTML = `SWAP ${fromToken.symbol} → ${toToken.symbol}`;
   }
@@ -2169,6 +2174,7 @@ async function switchChainSB() {
   const sel = document.getElementById('chainSelectSB').value;
   if(sel === currentChain) return;
   if(isBridging) { showToast('Please wait for bridge to complete'); document.getElementById('chainSelectSB').value = currentChain; return; }
+  if(isSwapping) { showToast('Please wait for swap to complete'); document.getElementById('chainSelectSB').value = currentChain; return; }
   currentChain = sel;
   if(currentMode === 'bridge') {
     fromChain = sel;
