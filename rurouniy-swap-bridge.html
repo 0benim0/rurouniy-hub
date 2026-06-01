@@ -1146,13 +1146,55 @@ const RYU_ABI = [
   "function lastFaucetDay(address) external view returns (uint256)"
 ];
 
+// Chain-specific token addresses
+const CHAIN_TOKENS = {
+  robinhood: [
+    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
+    { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
+    { symbol: 'WETH', name: 'Wrapped Ether',      icon: '🔷', decimals: 18, address: '0x7943e237c7F95DA44E0301572D358911207852Fa' },
+    { symbol: 'USDG', name: 'USD Gold',           icon: '💵', decimals: 6,  address: '0x7E955252E15c84f5768B83c41a71F9eba181802F' },
+    { symbol: 'TSLA', name: 'Tesla Stock',        icon: '🚗', decimals: 18, address: '0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E' },
+    { symbol: 'AMZN', name: 'Amazon Stock',       icon: '📦', decimals: 18, address: '0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02' },
+    { symbol: 'PLTR', name: 'Palantir Stock',     icon: '📊', decimals: 18, address: '0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0' },
+    { symbol: 'NFLX', name: 'Netflix Stock',      icon: '🎬', decimals: 18, address: '0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93' },
+    { symbol: 'AMD',  name: 'AMD Stock',          icon: '💻', decimals: 18, address: '0x71178BAc73cBeb415514eB542a8995b82669778d' },
+  ],
+  arc: [
+    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
+    { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
+    { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x3600000000000000000000000000000000000000' },
+    { symbol: 'EURC', name: 'Euro Coin',          icon: '💶', decimals: 6,  address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a' },
+    { symbol: 'cirBTC', name: 'Circle BTC',       icon: '₿',  decimals: 8,  address: '0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF' },
+  ],
+  giwa: [
+    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
+    { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
+  ],
+  ink: [
+    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
+    { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
+    { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac' },
+  ],
+};
+
+// Get tokens for current chain
+function getChainTokens(chainKey) {
+  return CHAIN_TOKENS[chainKey] || CHAIN_TOKENS.robinhood;
+}
+
 const TOKENS = [
   { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
   { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
   { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: null },
-  { symbol: 'USDT', name: 'Tether USD',         icon: '💰', decimals: 6,  address: null },
+  { symbol: 'EURC', name: 'Euro Coin',          icon: '💶', decimals: 6,  address: null },
+  { symbol: 'USDG', name: 'USD Gold',           icon: '💵', decimals: 6,  address: null },
   { symbol: 'WETH', name: 'Wrapped Ether',      icon: '🔷', decimals: 18, address: null },
-  { symbol: 'DAI',  name: 'Dai Stablecoin',     icon: '🟡', decimals: 18, address: null },
+  { symbol: 'cirBTC', name: 'Circle BTC',       icon: '₿',  decimals: 8,  address: null },
+  { symbol: 'TSLA', name: 'Tesla Stock',        icon: '🚗', decimals: 18, address: null },
+  { symbol: 'AMZN', name: 'Amazon Stock',       icon: '📦', decimals: 18, address: null },
+  { symbol: 'PLTR', name: 'Palantir Stock',     icon: '📊', decimals: 18, address: null },
+  { symbol: 'NFLX', name: 'Netflix Stock',      icon: '🎬', decimals: 18, address: null },
+  { symbol: 'AMD',  name: 'AMD Stock',          icon: '💻', decimals: 18, address: null },
 ];
 
 // ========== STATE ==========
@@ -1199,8 +1241,12 @@ async function getTokenBalance(token, chainKey) {
         const bal = await chainRpc.getBalance(walletAddress);
         return parseFloat(ethers.formatEther(bal)).toFixed(4);
       } else {
-        let addr = token.address === 'ryu' ? chainData.ryuAddress : token.address;
-        if(!addr) return '—';
+        // Get chain-specific address
+        const chainTokens = getChainTokens(chainKey);
+        const chainToken = chainTokens.find(t => t.symbol === token.symbol);
+        let addr = token.address === 'ryu' ? chainData.ryuAddress
+          : (chainToken ? chainToken.address : token.address);
+        if(!addr || addr === null) return '—';
         const c = new ethers.Contract(addr, [
           "function balanceOf(address) view returns (uint256)",
           "function decimals() view returns (uint8)"
@@ -1446,7 +1492,11 @@ function openTokenModal(target) {
   currentTokenTarget = target;
   document.getElementById('tokenModal').classList.add('open');
   document.getElementById('tokenSearch').value = '';
-  renderTokenList(TOKENS);
+  // Show chain-specific tokens
+  const chainKey = target === 'from'
+    ? (currentMode === 'bridge' ? fromChain : currentChain)
+    : (currentMode === 'bridge' ? toChain : currentChain);
+  renderTokenList(getChainTokens(chainKey));
   setTimeout(() => document.getElementById('tokenSearch').focus(), 100);
 }
 function closeTokenModal() {
@@ -1454,7 +1504,11 @@ function closeTokenModal() {
 }
 function filterTokens() {
   const q = document.getElementById('tokenSearch').value.toLowerCase();
-  renderTokenList(TOKENS.filter(t => t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q)));
+  const chainKey = currentTokenTarget === 'from'
+    ? (currentMode === 'bridge' ? fromChain : currentChain)
+    : (currentMode === 'bridge' ? toChain : currentChain);
+  const chainTokens = getChainTokens(chainKey);
+  renderTokenList(chainTokens.filter(t => t.symbol.toLowerCase().includes(q) || t.name.toLowerCase().includes(q)));
 }
 function renderTokenList(tokens) {
   const current = currentTokenTarget === 'from' ? fromToken : toToken;
@@ -1485,7 +1539,11 @@ function renderTokenList(tokens) {
   }
 }
 function selectToken(symbol) {
-  const token = TOKENS.find(t => t.symbol === symbol);
+  const chainKey = currentTokenTarget === 'from'
+    ? (currentMode === 'bridge' ? fromChain : currentChain)
+    : (currentMode === 'bridge' ? toChain : currentChain);
+  const chainTokens = getChainTokens(chainKey);
+  const token = chainTokens.find(t => t.symbol === symbol) || TOKENS.find(t => t.symbol === symbol);
   if(!token) return;
   if(currentTokenTarget === 'from') {
     fromToken = token;
@@ -1810,6 +1868,14 @@ async function doSwap(amt) {
 async function doBridge(amt) {
   const chain = CHAINS[currentChain];
   if(!chain.bridgeAddress) { showToast('Bridge contract not available'); return; }
+
+  // Warn if tokens are different
+  if(fromToken.symbol !== toToken.symbol) {
+    showToast('⚠️ Bridge requires same token on both sides. Use Swap first, then Bridge.');
+    document.getElementById('actionBtn').disabled = false;
+    document.getElementById('actionBtn').innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
+    return;
+  }
 
   const btn = document.getElementById('actionBtn');
   btn.disabled = true;
