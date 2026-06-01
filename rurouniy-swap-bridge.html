@@ -955,7 +955,7 @@ for(var i=0;i<18;i++){
 
     <!-- COMING SOON NOTE -->
     <div style="text-align:center;margin-top:10px;font-size:9px;color:var(--muted);letter-spacing:1px;">
-      ⚡ Smart contracts deploying soon &mdash; UI live &amp; ready
+      
     </div>
 
   </div>
@@ -1753,8 +1753,10 @@ function updateActionBtn() {
       btn.disabled = false;
     }
   } else {
-    // BRIDGE MODE
-    if(!hasBridge) {
+    // BRIDGE MODE — use fromChain bridge contract
+    const fromChainData = CHAINS[currentMode === 'bridge' ? fromChain : currentChain];
+    const bridgeOk = fromChainData && fromChainData.bridgeAddress;
+    if(!bridgeOk) {
       btn.className = 'action-btn connect-btn';
       btn.innerHTML = '⚡ BRIDGE CONTRACT COMING SOON';
       btn.disabled = true;
@@ -1867,7 +1869,7 @@ async function doSwap(amt) {
 }
 
 async function doBridge(amt) {
-  const chain = CHAINS[currentChain];
+  const chain = CHAINS[fromChain] || CHAINS[currentChain];
   if(!chain.bridgeAddress) { showToast('Bridge contract not available'); return; }
 
   // Warn if tokens are different
