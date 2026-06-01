@@ -1562,6 +1562,33 @@ function toggleWallet() {
     connectWallet();
   }
 }
+async function switchToChain(chainKey) {
+  const chain = CHAINS[chainKey];
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: chain.chainId }]
+    });
+  } catch(switchError) {
+    if(switchError.code === 4902 || switchError.code === -32603) {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: chain.chainId,
+            chainName: chain.name,
+            rpcUrls: [chain.rpc],
+            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+            blockExplorerUrls: [chain.explorer]
+          }]
+        });
+      } catch(addError) {
+        showToast('Could not add network: ' + addError.message.slice(0,40));
+      }
+    }
+  }
+}
+
 async function connectWallet() {
   if(!window.ethereum) { showToast('MetaMask or Rabby not found!'); return; }
   try {
@@ -1573,20 +1600,28 @@ async function connectWallet() {
     const btn = document.getElementById('walletBtn');
     btn.textContent = walletAddress.slice(0,6) + '...' + walletAddress.slice(-4);
     btn.classList.add('connected');
-    showToast('Connected: ' + walletAddress.slice(0,8) + '...');
-    updateActionBtn();
-    initRyuContract();
-    // Check chain
+
+    // Check current chain
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
     const matched = Object.entries(CHAINS).find(([k,c]) => c.chainId.toLowerCase() === chainId.toLowerCase());
+
     if(matched) {
+      // User is already on a supported chain
       currentChain = matched[0];
       document.getElementById('networkName').textContent = matched[1].name;
       if(currentMode === 'bridge') fromChain = currentChain;
+      showToast('Connected: ' + walletAddress.slice(0,6) + '...');
+    } else {
+      // User is on wrong chain (e.g. ETH Mainnet) — switch to Robinhood
+      showToast('Wrong network! Switching to Robinhood Testnet...');
+      await switchToChain('robinhood');
+      currentChain = 'robinhood';
+      document.getElementById('networkName').textContent = CHAINS.robinhood.name;
     }
-    // Mock balances
-    document.getElementById('fromBalance').textContent = '0.1234 ' + fromToken.symbol;
-    document.getElementById('toBalance').textContent = '420.69 ' + toToken.symbol;
+
+    updateActionBtn();
+    initRyuContract();
+
   } catch(e) {
     showToast('Error: ' + (e.message || 'Connection failed').slice(0,60));
   }
@@ -1639,6 +1674,11 @@ window.addEventListener('load', function() {
         updateActionBtn();
         showToast('Switched to ' + matched[1].name);
         if(walletAddress) initRyuContract();
+      } else {
+        // User switched to unsupported chain
+        document.getElementById('networkName').textContent = 'Unsupported';
+        showToast('⚠️ Please switch to a supported testnet!');
+        updateActionBtn();
       }
     });
   }
