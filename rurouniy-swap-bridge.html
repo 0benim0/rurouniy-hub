@@ -1477,18 +1477,25 @@ function selectChain(key) {
   if(currentChainTarget === 'from') {
     fromChain = key;
     if(fromChain === toChain) {
-      // Auto-pick different chain for to
       toChain = Object.keys(CHAINS).find(k => k !== key) || 'arc';
     }
+    // Sync header dropdown with fromChain
+    currentChain = key;
+    document.getElementById('chainSelectSB').value = key;
+    // Switch wallet chain too
+    if(walletAddress) switchToChain(key);
   } else {
     toChain = key;
     if(toChain === fromChain) {
       fromChain = Object.keys(CHAINS).find(k => k !== key) || 'robinhood';
+      currentChain = fromChain;
+      document.getElementById('chainSelectSB').value = fromChain;
     }
   }
   updateChainDisplay();
   closeChainModal();
   calcOutput();
+  loadRealBalances();
 }
 
 function closeModals(e) {
@@ -1929,15 +1936,18 @@ window.addEventListener('load', function() {
 async function switchChainSB() {
   const sel = document.getElementById('chainSelectSB').value;
   if(sel === currentChain) return;
-  if(!walletAddress) {
-    // Just update UI without wallet
-    currentChain = sel;
-    document.getElementById('networkName').textContent = CHAINS[sel].name;
-    if(currentMode === 'bridge') fromChain = sel;
-    updateActionBtn();
-    return;
+  currentChain = sel;
+  if(currentMode === 'bridge') {
+    fromChain = sel;
+    // Make sure toChain is different
+    if(toChain === fromChain) {
+      toChain = Object.keys(CHAINS).find(k => k !== sel) || 'arc';
+    }
+    updateChainDisplay();
   }
-  await switchToChain(sel);
+  updateActionBtn();
+  loadRealBalances();
+  if(walletAddress) await switchToChain(sel);
 }
 
 // ========== THEME TOGGLE ==========
