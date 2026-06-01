@@ -1508,7 +1508,13 @@ function closeModals(e) {
 function flipTokens() {
   if(currentMode === 'bridge') {
     [fromChain, toChain] = [toChain, fromChain];
+    // Sync header dropdown with new fromChain
+    currentChain = fromChain;
+    document.getElementById('chainSelectSB').value = fromChain;
     updateChainDisplay();
+    // Switch wallet chain
+    if(walletAddress) switchToChain(fromChain);
+    loadRealBalances();
   } else {
     [fromToken, toToken] = [toToken, fromToken];
     document.getElementById('fromTokenIcon').textContent = fromToken.icon;
@@ -1517,6 +1523,7 @@ function flipTokens() {
     document.getElementById('toTokenIcon').textContent = toToken.icon;
     document.getElementById('toTokenName').textContent = toToken.symbol;
     document.getElementById('toTokenFull').textContent = toToken.name;
+    loadRealBalances();
   }
   const fromVal = document.getElementById('fromAmount').value;
   const toVal = document.getElementById('toAmount').value;
