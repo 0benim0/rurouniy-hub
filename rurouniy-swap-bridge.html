@@ -1962,7 +1962,8 @@ async function connectWallet() {
 
     // Check current chain
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    const matched = Object.entries(CHAINS).find(([k,c]) => c.chainId.toLowerCase() === chainId.toLowerCase());
+    const chainIdNum2 = parseInt(chainId, 16);
+      const matched = Object.entries(CHAINS).find(([k,c]) => Number(c.chainId) === chainIdNum2);
 
     if(matched) {
       // User is already on a supported chain
