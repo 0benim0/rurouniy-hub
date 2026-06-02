@@ -2196,12 +2196,9 @@ async function doBridge(amt) {
       await doLockMintBridge(amt, chain);
     }
   } catch(e) {
-    const msg = e.message || '';
-    if(msg.includes('network changed') || msg.includes('NE')) {
-      showToast('⚠️ Network changed during bridge — TX may still complete. Check explorer!');
-    } else {
-      showToast('Error: ' + msg.slice(0, 60));
-    }
+    const msg = e.message || e.reason || String(e) || 'Unknown error';
+    console.error('Bridge error:', e);
+    showToast('❌ ' + msg.slice(0, 80));
     btn.disabled = false;
     btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
   } finally {
@@ -2271,7 +2268,9 @@ async function doCCTPBridge(amt, chain) {
 
 async function doLockMintBridge(amt, chain) {
   const btn = document.getElementById('actionBtn');
-  const destChainId = CHAINS[toChain].chainId;
+  const rawChainId = CHAINS[toChain].chainId;
+  const destChainId = CHAINS[toChain].chainIdDec || 
+    (typeof rawChainId === 'string' ? parseInt(rawChainId, 16) : rawChainId);
 
   const bridgeContract = new ethers.Contract(chain.bridgeAddress, BRIDGE_ABI, signer);
 
