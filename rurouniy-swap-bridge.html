@@ -1744,11 +1744,13 @@ async function calcOutputFromContract(amt) {
     const feeFormatted = parseFloat(ethers.formatUnits(fee, Number(fromToken.decimals) || 18));
     const rate = outFormatted / (amt - parseFloat(ethers.formatUnits(fee, Number(fromToken.decimals) || 18)));
 
-    document.getElementById('toAmount').value = outFormatted.toFixed(6);
-    document.getElementById('routeRate').textContent = `1 ${fromToken.symbol} = ${rate.toFixed(6)} ${toToken.symbol}`;
+    document.getElementById('toAmount').value = outFormatted < 0.0001 ? outFormatted.toFixed(8) : outFormatted.toFixed(6);
+    const rateDisplay = rate < 0.0001 ? rate.toExponential(4) : rate.toFixed(8);
+    document.getElementById('routeRate').textContent = `1 ${fromToken.symbol} = ${rateDisplay} ${toToken.symbol}`;
     document.getElementById('routeFee').textContent = feeFormatted.toFixed(6) + ' ' + fromToken.symbol;
     document.getElementById('routeImpact').textContent = '0.1%';
-    document.getElementById('routeReceive').textContent = outFormatted.toFixed(6) + ' ' + toToken.symbol;
+    const receiveDisplay = outFormatted < 0.0001 ? outFormatted.toFixed(8) : outFormatted.toFixed(6);
+    document.getElementById('routeReceive').textContent = receiveDisplay + ' ' + toToken.symbol;
 
     // USD estimates
     const usdPrice = fromToken.symbol.includes('USD') ? 1 : fromToken.symbol === 'ETH' ? 2600 : 0.01;
