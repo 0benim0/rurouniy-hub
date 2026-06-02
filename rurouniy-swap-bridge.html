@@ -1074,6 +1074,32 @@ for(var i=0;i<18;i++){
 <script>
 // ========== CONFIG ==========
 const CHAINS = {
+  ethereum_sepolia: {
+    name: 'Ethereum Sepolia',
+    chainId: 11155111,
+    chainIdHex: '0xaa36a7',
+    rpc: 'https://rpc.sepolia.org',
+    explorer: 'https://sepolia.etherscan.io',
+    ryuAddress: null,
+    swapAddress: null,
+    bridgeAddress: null,
+    liquidityReady: false,
+    isBridgeOnly: true,
+    nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
+  },
+  base_sepolia: {
+    name: 'Base Sepolia',
+    chainId: 84532,
+    chainIdHex: '0x14a34',
+    rpc: 'https://sepolia.base.org',
+    explorer: 'https://sepolia.basescan.org',
+    ryuAddress: null,
+    swapAddress: null,
+    bridgeAddress: null,
+    liquidityReady: false,
+    isBridgeOnly: true,
+    nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
+  },
   robinhood: {
     name: 'Robinhood', chainId: '0xb626', chainIdDec: 46630,
     rpc: 'https://rpc.testnet.chain.robinhood.com/rpc',
@@ -1160,10 +1186,9 @@ const CHAIN_TOKENS = {
     { symbol: 'AMD',  name: 'AMD Stock',          icon: '💻', decimals: 18, address: '0x71178BAc73cBeb415514eB542a8995b82669778d' },
   ],
   arc: [
-    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
-    { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
     { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x3600000000000000000000000000000000000000' },
     { symbol: 'EURC', name: 'Euro Coin',          icon: '💶', decimals: 6,  address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a' },
+    { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
   ],
   giwa: [
     { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
@@ -1173,6 +1198,14 @@ const CHAIN_TOKENS = {
     { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
     { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
     { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac' },
+  ],
+  ethereum_sepolia: [
+    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
+    { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' },
+  ],
+  base_sepolia: [
+    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
+    { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' },
   ],
 };
 
@@ -1493,7 +1526,6 @@ function openTokenModal(target) {
   currentTokenTarget = target;
   document.getElementById('tokenModal').classList.add('open');
   document.getElementById('tokenSearch').value = '';
-  // Show chain-specific tokens
   const chainKey = target === 'from'
     ? (currentMode === 'bridge' ? fromChain : currentChain)
     : (currentMode === 'bridge' ? toChain : currentChain);
@@ -1574,7 +1606,11 @@ function closeChainModal() {
 }
 function renderChainList() {
   const current = currentChainTarget === 'from' ? fromChain : toChain;
-  document.getElementById('chainList').innerHTML = Object.entries(CHAINS).map(([key, c]) => `
+  const entries = Object.entries(CHAINS).filter(([key, c]) => {
+    if(currentMode === 'swap') return !c.isBridgeOnly;
+    return true;
+  });
+  document.getElementById('chainList').innerHTML = entries.map(([key, c]) => `
     <div class="chain-list-item ${key===current?'selected':''}" onclick="selectChain('${key}')">
       <div class="cli-dot" style="background:${c.color};box-shadow:0 0 8px ${c.color};"></div>
       <div class="cli-info">
@@ -1773,6 +1809,39 @@ async function setMax() {
 }
 
 // ========== ACTION BTN ==========
+function updateChainSelector() {
+  const sel = document.getElementById('chainSelectSB');
+  if(!sel) return;
+  const currentVal = sel.value;
+  
+  if(currentMode === 'bridge') {
+    // Add Ethereum Sepolia and Base Sepolia if not there
+    if(!sel.querySelector('option[value="ethereum_sepolia"]')) {
+      const opt1 = document.createElement('option');
+      opt1.value = 'ethereum_sepolia';
+      opt1.textContent = 'Ethereum Sepolia';
+      sel.appendChild(opt1);
+    }
+    if(!sel.querySelector('option[value="base_sepolia"]')) {
+      const opt2 = document.createElement('option');
+      opt2.value = 'base_sepolia';
+      opt2.textContent = 'Base Sepolia';
+      sel.appendChild(opt2);
+    }
+  } else {
+    // Remove bridge-only chains from swap
+    const ethOpt = sel.querySelector('option[value="ethereum_sepolia"]');
+    const baseOpt = sel.querySelector('option[value="base_sepolia"]');
+    if(ethOpt) sel.removeChild(ethOpt);
+    if(baseOpt) sel.removeChild(baseOpt);
+    // If current chain is bridge-only, switch to robinhood
+    if(currentChain === 'ethereum_sepolia' || currentChain === 'base_sepolia') {
+      sel.value = 'robinhood';
+      currentChain = 'robinhood';
+    }
+  }
+}
+
 function updateActionBtn() {
   const btn = document.getElementById('actionBtn');
   if(!walletAddress) {
@@ -1785,6 +1854,7 @@ function updateActionBtn() {
   const hasSwap = chain.swapAddress;
   const hasBridge = chain.bridgeAddress;
   const liquidityReady = chain.liquidityReady;
+  const isBridgeOnly = chain.isBridgeOnly;
 
   // Reset styles
   btn.style.background = '';
@@ -1792,7 +1862,11 @@ function updateActionBtn() {
   btn.style.border = '';
 
   if(currentMode === 'swap') {
-    if(!hasSwap) {
+    if(isBridgeOnly) {
+      btn.className = 'action-btn connect-btn';
+      btn.innerHTML = '⚡ SWAP NOT AVAILABLE ON THIS CHAIN';
+      btn.disabled = true;
+    } else if(!hasSwap) {
       btn.className = 'action-btn connect-btn';
       btn.innerHTML = '⚡ SWAP CONTRACT COMING SOON';
       btn.disabled = true;
@@ -2265,6 +2339,13 @@ async function switchChainSB() {
   const chainTokens = getChainTokens(sel);
   fromToken = chainTokens[0];
   toToken = chainTokens[1] || chainTokens[0];
+
+  // If bridge-only chain selected, switch to bridge mode
+  if(CHAINS[sel] && CHAINS[sel].isBridgeOnly && currentMode !== 'bridge') {
+    currentMode = 'bridge';
+    document.querySelectorAll('.mode-badge').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.mode-badge')[1].classList.add('active');
+  }
 
   // Update token display
   document.getElementById('fromTokenIcon').textContent = fromToken.icon;
