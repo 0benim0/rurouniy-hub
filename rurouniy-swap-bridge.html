@@ -1678,15 +1678,23 @@ function flipTokens() {
     // Keep RYU if both chains have it, otherwise use first token
     const fromHasRYU = newFromTokens.find(t => t.symbol === 'RYU');
     const toHasRYU = newToTokens.find(t => t.symbol === 'RYU');
-    if(fromToken.symbol === 'RYU' && fromHasRYU) {
+    // fromToken must exist on fromChain, otherwise use RYU or first token
+    const fromTokenExists = newFromTokens.find(t => t.symbol === fromToken.symbol);
+    if(fromTokenExists) {
+      fromToken = fromTokenExists;
+    } else if(fromHasRYU) {
       fromToken = fromHasRYU;
     } else {
-      fromToken = newFromTokens.find(t => t.symbol === fromToken.symbol) || newFromTokens[0];
+      fromToken = newFromTokens[0];
     }
-    if(toToken.symbol === 'RYU' && toHasRYU) {
+    // toToken must exist on toChain, otherwise use RYU or first token
+    const toTokenExists = newToTokens.find(t => t.symbol === toToken.symbol);
+    if(toTokenExists) {
+      toToken = toTokenExists;
+    } else if(toHasRYU) {
       toToken = toHasRYU;
     } else {
-      toToken = newToTokens.find(t => t.symbol === toToken.symbol) || newToTokens[0];
+      toToken = newToTokens[0];
     }
     document.getElementById('fromTokenIcon').textContent = fromToken.icon;
     document.getElementById('fromTokenName').textContent = fromToken.symbol;
