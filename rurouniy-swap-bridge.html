@@ -1164,7 +1164,6 @@ const CHAIN_TOKENS = {
     { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
     { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x3600000000000000000000000000000000000000' },
     { symbol: 'EURC', name: 'Euro Coin',          icon: '💶', decimals: 6,  address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a' },
-    { symbol: 'cirBTC', name: 'Circle BTC',       icon: '₿',  decimals: 8,  address: '0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF' },
   ],
   giwa: [
     { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
@@ -2156,8 +2155,23 @@ window.addEventListener('load', function() {
       if(matched) {
         currentChain = matched[0];
         document.getElementById('chainSelectSB').value = matched[0];
+
+        // Reset tokens to first two of new chain
+        const newChainTokens = getChainTokens(matched[0]);
+        fromToken = newChainTokens[0];
+        toToken = newChainTokens[1] || newChainTokens[0];
+        document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+        document.getElementById('fromTokenName').textContent = fromToken.symbol;
+        document.getElementById('fromTokenFull').textContent = fromToken.name;
+        document.getElementById('toTokenIcon').textContent = toToken.icon;
+        document.getElementById('toTokenName').textContent = toToken.symbol;
+        document.getElementById('toTokenFull').textContent = toToken.name;
+        document.getElementById('fromAmount').value = '';
+        document.getElementById('toAmount').value = '';
+
         if(currentMode === 'bridge') fromChain = currentChain;
         updateActionBtn();
+        calcOutput();
         showToast('Switched to ' + matched[1].name);
         if(walletAddress) initRyuContract();
       } else {
@@ -2176,6 +2190,24 @@ async function switchChainSB() {
   if(isBridging) { showToast('Please wait for bridge to complete'); document.getElementById('chainSelectSB').value = currentChain; return; }
   if(isSwapping) { showToast('Please wait for swap to complete'); document.getElementById('chainSelectSB').value = currentChain; return; }
   currentChain = sel;
+
+  // Reset tokens to first two tokens of new chain
+  const chainTokens = getChainTokens(sel);
+  fromToken = chainTokens[0];
+  toToken = chainTokens[1] || chainTokens[0];
+
+  // Update token display
+  document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+  document.getElementById('fromTokenName').textContent = fromToken.symbol;
+  document.getElementById('fromTokenFull').textContent = fromToken.name;
+  document.getElementById('toTokenIcon').textContent = toToken.icon;
+  document.getElementById('toTokenName').textContent = toToken.symbol;
+  document.getElementById('toTokenFull').textContent = toToken.name;
+
+  // Reset amounts
+  document.getElementById('fromAmount').value = '';
+  document.getElementById('toAmount').value = '';
+
   if(currentMode === 'bridge') {
     fromChain = sel;
     if(toChain === fromChain) {
@@ -2185,6 +2217,7 @@ async function switchChainSB() {
   }
   updateActionBtn();
   loadRealBalances();
+  calcOutput();
   if(walletAddress) await switchToChain(sel);
 }
 
