@@ -648,17 +648,19 @@ main {
 
 /* TOAST */
 .toast {
-  position: fixed; bottom: 20px; right: 20px;
+  position: fixed; bottom: 30px; right: 20px;
   background: #0f1419;
   color: #fff;
   border: none;
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 11px;
+  border-radius: 14px;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 700;
   z-index: 1000;
   display: none;
-  max-width: 280px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  max-width: 360px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  line-height: 1.5;
 }
 .toast.show { display: block; animation: toastIn 0.3s ease; }
 @keyframes toastIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
@@ -1343,6 +1345,9 @@ function initRyuContract() {
   const chain = CHAINS[currentChain];
   if(!chain.ryuAddress || !signer) return;
   ryuContract = new ethers.Contract(chain.ryuAddress, RYU_ABI, signer);
+  // Update faucet button text
+  const btn = document.getElementById('faucetClaimBtn');
+  if(btn) btn.textContent = 'LOADING...';
   loadFaucetStatus();
   loadRyuBalance();
 }
@@ -1434,7 +1439,7 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   if(!t) return;
   t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3500);
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 5000);
 }
 function saveStats() {
   localStorage.setItem('ryuSwapStats', JSON.stringify(stats));
@@ -1664,8 +1669,31 @@ function flipTokens() {
     // Sync header dropdown with new fromChain
     currentChain = fromChain;
     document.getElementById('chainSelectSB').value = fromChain;
+
+    // Reset tokens to chain-specific defaults
+    const newFromTokens = getChainTokens(fromChain);
+    const newToTokens = getChainTokens(toChain);
+    // Keep RYU if both chains have it, otherwise use first token
+    const fromHasRYU = newFromTokens.find(t => t.symbol === 'RYU');
+    const toHasRYU = newToTokens.find(t => t.symbol === 'RYU');
+    if(fromToken.symbol === 'RYU' && fromHasRYU) {
+      fromToken = fromHasRYU;
+    } else {
+      fromToken = newFromTokens.find(t => t.symbol === fromToken.symbol) || newFromTokens[0];
+    }
+    if(toToken.symbol === 'RYU' && toHasRYU) {
+      toToken = toHasRYU;
+    } else {
+      toToken = newToTokens.find(t => t.symbol === toToken.symbol) || newToTokens[0];
+    }
+    document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+    document.getElementById('fromTokenName').textContent = fromToken.symbol;
+    document.getElementById('fromTokenFull').textContent = fromToken.name;
+    document.getElementById('toTokenIcon').textContent = toToken.icon;
+    document.getElementById('toTokenName').textContent = toToken.symbol;
+    document.getElementById('toTokenFull').textContent = toToken.name;
+
     updateChainDisplay();
-    // Switch wallet chain
     if(walletAddress) switchToChain(fromChain);
     loadRealBalances();
   } else {
