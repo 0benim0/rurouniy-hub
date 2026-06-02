@@ -1630,6 +1630,7 @@ function flipTokens() {
   } else {
     updateActionBtn();
     [fromToken, toToken] = [toToken, fromToken];
+    updateActionBtn();
     document.getElementById('fromTokenIcon').textContent = fromToken.icon;
     document.getElementById('fromTokenName').textContent = fromToken.symbol;
     document.getElementById('fromTokenFull').textContent = fromToken.name;
