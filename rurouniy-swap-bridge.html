@@ -1628,6 +1628,7 @@ function flipTokens() {
     if(walletAddress) switchToChain(fromChain);
     loadRealBalances();
   } else {
+    updateActionBtn();
     [fromToken, toToken] = [toToken, fromToken];
     document.getElementById('fromTokenIcon').textContent = fromToken.icon;
     document.getElementById('fromTokenName').textContent = fromToken.symbol;
