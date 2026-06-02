@@ -1812,34 +1812,41 @@ async function setMax() {
 function updateChainSelector() {
   const sel = document.getElementById('chainSelectSB');
   if(!sel) return;
-  const currentVal = sel.value;
-  
-  if(currentMode === 'bridge') {
-    // Add Ethereum Sepolia and Base Sepolia if not there
-    if(!sel.querySelector('option[value="ethereum_sepolia"]')) {
-      const opt1 = document.createElement('option');
-      opt1.value = 'ethereum_sepolia';
-      opt1.textContent = 'Ethereum Sepolia';
-      sel.appendChild(opt1);
-    }
-    if(!sel.querySelector('option[value="base_sepolia"]')) {
-      const opt2 = document.createElement('option');
-      opt2.value = 'base_sepolia';
-      opt2.textContent = 'Base Sepolia';
-      sel.appendChild(opt2);
-    }
-  } else {
-    // Remove bridge-only chains from swap
-    const ethOpt = sel.querySelector('option[value="ethereum_sepolia"]');
-    const baseOpt = sel.querySelector('option[value="base_sepolia"]');
-    if(ethOpt) sel.removeChild(ethOpt);
-    if(baseOpt) sel.removeChild(baseOpt);
-    // If current chain is bridge-only, switch to robinhood
-    if(currentChain === 'ethereum_sepolia' || currentChain === 'base_sepolia') {
-      sel.value = 'robinhood';
-      currentChain = 'robinhood';
-    }
+
+  // Clear and rebuild options based on mode
+  sel.innerHTML = '';
+
+  const swapChains = [
+    { value: 'robinhood', label: 'Robinhood' },
+    { value: 'arc', label: 'ARC' },
+    { value: 'giwa', label: 'GIWA' },
+    { value: 'ink', label: 'INK Sepolia' }
+  ];
+
+  const bridgeChains = [
+    { value: 'robinhood', label: 'Robinhood' },
+    { value: 'arc', label: 'ARC' },
+    { value: 'giwa', label: 'GIWA' },
+    { value: 'ink', label: 'INK Sepolia' },
+    { value: 'ethereum_sepolia', label: 'Ethereum Sepolia' },
+    { value: 'base_sepolia', label: 'Base Sepolia' }
+  ];
+
+  const chains = currentMode === 'bridge' ? bridgeChains : swapChains;
+  chains.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.value;
+    opt.textContent = c.label;
+    sel.appendChild(opt);
+  });
+
+  // If current chain not in list, switch to robinhood
+  const validValues = chains.map(c => c.value);
+  if(!validValues.includes(currentChain)) {
+    currentChain = 'robinhood';
+    fromChain = 'robinhood';
   }
+  sel.value = currentChain;
 }
 
 function updateActionBtn() {
