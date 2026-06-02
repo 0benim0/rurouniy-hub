@@ -1077,10 +1077,11 @@ const CHAINS = {
   ethereum_sepolia: {
     name: 'Ethereum Sepolia',
     icon: '⟠',
-    chainId: 11155111,
-    chainIdHex: '0xaa36a7',
+    chainId: '0xaa36a7',
+    chainIdDec: 11155111,
     rpc: 'https://ethereum-sepolia-rpc.publicnode.com/',
     explorer: 'https://sepolia.etherscan.io',
+    color: '#627EEA',
     ryuAddress: null,
     swapAddress: null,
     bridgeAddress: null,
@@ -1091,10 +1092,11 @@ const CHAINS = {
   base_sepolia: {
     name: 'Base Sepolia',
     icon: '🔵',
-    chainId: 84512,
-    chainIdHex: '0x14a00',
+    chainId: '0x14a00',
+    chainIdDec: 84512,
     rpc: 'https://sepolia.base.org',
     explorer: 'https://sepolia.basescan.org',
+    color: '#0052FF',
     ryuAddress: null,
     swapAddress: null,
     bridgeAddress: null,
@@ -1190,6 +1192,7 @@ const CHAIN_TOKENS = {
   arc: [
     { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x3600000000000000000000000000000000000000' },
     { symbol: 'EURC', name: 'Euro Coin',          icon: '💶', decimals: 6,  address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a' },
+    { symbol: 'cirBTC', name: 'Circle BTC',       icon: '₿',  decimals: 8,  address: '0xf0C4a4CE82A5746AbAAd9425360Ab04fbBA432BF' },
     { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
   ],
   giwa: [
@@ -1508,8 +1511,8 @@ function updateChainDisplay() {
   document.getElementById('fromChainName').textContent = fc.name;
   document.getElementById('toChainIcon').textContent = tc.icon;
   document.getElementById('toChainName').textContent = tc.name;
-  document.getElementById('fromChainBtn').style.borderColor = fc.color + '44';
-  document.getElementById('toChainBtn').style.borderColor = tc.color + '44';
+  document.getElementById('fromChainBtn').style.borderColor = (fc.color || '#888888') + '44';
+  document.getElementById('toChainBtn').style.borderColor = (tc.color || '#888888') + '44';
 }
 
 // ========== SETTINGS ==========
@@ -1617,7 +1620,7 @@ function renderChainList() {
       <div class="cli-dot" style="background:${c.color};box-shadow:0 0 8px ${c.color};"></div>
       <div class="cli-info">
         <div class="cli-name">${c.icon} ${c.name}</div>
-        <div class="cli-id">Chain ID: ${c.chainIdDec}</div>
+        <div class="cli-id">Chain ID: ${c.chainIdDec || (typeof c.chainId === 'string' ? parseInt(c.chainId, 16) : c.chainId)}</div>
       </div>
       ${key===current ? '<div class="cli-check">✓</div>' : ''}
     </div>
@@ -2309,7 +2312,10 @@ window.addEventListener('load', function() {
     });
     window.ethereum.on('chainChanged', function(chainId) {
       const chainIdNum = parseInt(chainId, 16);
-      const matched = Object.entries(CHAINS).find(([k,c]) => Number(c.chainId) === chainIdNum);
+      const matched = Object.entries(CHAINS).find(([k,c]) => {
+        const cId = c.chainIdDec || (typeof c.chainId === 'number' ? c.chainId : parseInt(c.chainId, 16));
+        return cId === chainIdNum;
+      });
       if(matched) {
         currentChain = matched[0];
         document.getElementById('chainSelectSB').value = matched[0];
