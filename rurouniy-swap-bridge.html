@@ -1749,7 +1749,9 @@ function updateActionBtn() {
       btn.style.border = '1px solid #fcd34d';
     } else {
       btn.className = 'action-btn swap-btn';
-      btn.innerHTML = `SWAP ${fromToken.symbol} → ${toToken.symbol}`;
+      const ft = document.getElementById('fromTokenName').textContent;
+      const tt = document.getElementById('toTokenName').textContent;
+      btn.innerHTML = `SWAP ${ft} → ${tt}`;
       btn.disabled = false;
     }
   } else {
