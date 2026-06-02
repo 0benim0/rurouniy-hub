@@ -1970,19 +1970,18 @@ async function connectWallet() {
     const chainIdNum2 = parseInt(chainId, 16);
       const matched = Object.entries(CHAINS).find(([k,c]) => Number(c.chainId) === chainIdNum2);
 
-    if(matched) {
-      // User is already on a supported chain
-      currentChain = matched[0];
-      document.getElementById('chainSelectSB').value = matched[0];
-      if(currentMode === 'bridge') fromChain = currentChain;
+    // Always switch wallet to match the chain selected in the app
+    const appChain = currentChain;
+    if(matched && matched[0] === appChain) {
+      // Wallet is already on the correct chain
       showToast('Connected: ' + walletAddress.slice(0,6) + '...');
     } else {
-      // User is on wrong chain (e.g. ETH Mainnet) — switch to Robinhood
-      showToast('Wrong network! Switching to Robinhood Testnet...');
-      await switchToChain('robinhood');
-      currentChain = 'robinhood';
-      document.getElementById('chainSelectSB').value = 'robinhood';
+      // Switch wallet to match app chain
+      showToast('Switching to ' + CHAINS[appChain].name + '...');
+      await switchToChain(appChain);
     }
+    document.getElementById('chainSelectSB').value = appChain;
+    if(currentMode === 'bridge') fromChain = appChain;
 
     updateActionBtn();
     initRyuContract();
