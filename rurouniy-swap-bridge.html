@@ -1560,7 +1560,7 @@ function selectToken(symbol) {
   closeTokenModal();
   calcOutput();
   updateActionBtn();
-  loadRealBalances();
+  setTimeout(() => loadRealBalances(), 3000);
 }
 
 // ========== CHAIN MODAL ==========
