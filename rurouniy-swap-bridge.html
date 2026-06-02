@@ -1111,7 +1111,7 @@ const CHAINS = {
     color: '#00d9ff', icon: '⬡',
     ryuAddress: '0x1f3E5c52Ee65d89F3E70E7bD9Fa01a335829E63C',
     swapAddress: '0xa26a06A3e04Ec174c07FB941C4eA1dBff405e9BF',
-    bridgeAddress: '0xf1Ba4B79eAc58Bbd333649CF38E10aFfca36c48B',
+    bridgeAddress: null,
     liquidityReady: false
   },
   arc: {
@@ -1131,7 +1131,7 @@ const CHAINS = {
     color: '#a78bfa', icon: '◆',
     ryuAddress: '0x25832a57D698C9072C71aA735Be2D11A48e9a1A6',
     swapAddress: '0x2121C6c9EEfEA700831b16Ba5791a145599fb54B',
-    bridgeAddress: '0x387f94407c87Ced6dD343db53EbCb496b2C41ca3',
+    bridgeAddress: null,
     liquidityReady: false
   },
   ink: {
@@ -1141,7 +1141,7 @@ const CHAINS = {
     color: '#ffd700', icon: '✦',
     ryuAddress: '0xAE28B6F4705eeAA72690D0DF423a7169c6715051',
     swapAddress: '0xD08e9e13A17136DBD65b0ff97425239903Cd5E2F',
-    bridgeAddress: '0xC1d745360D25343F7Da1A609691b02e2278E9642',
+    bridgeAddress: null,
     liquidityReady: false
   }
 };
@@ -2134,11 +2134,18 @@ async function doBridge(amt) {
 
   try {
     // ARC → use CCTP only for Ethereum Sepolia or Base Sepolia destinations
-    const cctpDestinations = ['ethereum_sepolia', 'base_sepolia'];
     const isCCTPDest = toChain === 'ethereum_sepolia' || toChain === 'base_sepolia';
     
-    if(currentChain === 'arc' && fromToken.symbol === 'USDC' && isCCTPDest) {
+    if(fromChain === 'arc' && fromToken.symbol === 'USDC' && isCCTPDest) {
       await doCCTPBridge(amt, chain);
+    } else if(fromChain === 'arc' && fromToken.symbol === 'EURC' && isCCTPDest) {
+      showToast('⚠️ EURC CCTP Bridge coming soon!');
+      btn.disabled = false;
+      btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
+    } else if(isCCTPDest) {
+      showToast('⚠️ Only USDC from ARC can be bridged to Ethereum/Base Sepolia via CCTP');
+      btn.disabled = false;
+      btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
     } else {
       await doLockMintBridge(amt, chain);
     }
