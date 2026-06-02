@@ -1560,7 +1560,7 @@ function selectToken(symbol) {
   closeTokenModal();
   calcOutput();
   updateActionBtn();
-  setTimeout(() => loadRealBalances(), 3000);
+  loadRealBalances();
 }
 
 // ========== CHAIN MODAL ==========
@@ -1628,9 +1628,7 @@ function flipTokens() {
     if(walletAddress) switchToChain(fromChain);
     loadRealBalances();
   } else {
-    updateActionBtn();
     [fromToken, toToken] = [toToken, fromToken];
-    updateActionBtn();
     document.getElementById('fromTokenIcon').textContent = fromToken.icon;
     document.getElementById('fromTokenName').textContent = fromToken.symbol;
     document.getElementById('fromTokenFull').textContent = fromToken.name;
@@ -1644,6 +1642,7 @@ function flipTokens() {
   document.getElementById('fromAmount').value = toVal;
   document.getElementById('toAmount').value = fromVal;
   calcOutput();
+  updateActionBtn();
 }
 
 // ========== CALC OUTPUT (mock rates) ==========
@@ -1658,6 +1657,7 @@ function getRate(from, to) {
   const key = `${from}_${to}`;
   return MOCK_RATES[key] || (1 / (MOCK_RATES[`${to}_${from}`] || 1));
 }
+let calcOutputTimer = null;
 function calcOutput() {
   const amt = parseFloat(document.getElementById('fromAmount').value);
   const ri = document.getElementById('routeInfo');
@@ -1668,11 +1668,65 @@ function calcOutput() {
     ri.style.display = 'none';
     return;
   }
+
+  // Use contract rate if swap contract available and liquidity ready
+  const chain = CHAINS[currentChain];
+  if(currentMode === 'swap' && chain.swapAddress && chain.liquidityReady && walletAddress) {
+    clearTimeout(calcOutputTimer);
+    calcOutputTimer = setTimeout(() => calcOutputFromContract(amt), 500);
+    return;
+  }
+
+  // Fallback to mock rates
+  calcOutputMock(amt);
+}
+
+async function calcOutputFromContract(amt) {
+  const ri = document.getElementById('routeInfo');
+  try {
+    const chain = CHAINS[currentChain];
+    const SWAP_VIEW_ABI = ["function getAmountOut(address tokenIn, address tokenOut, uint256 amountIn) external view returns (uint256 amountOut, uint256 fee)"];
+    const swapContract = new ethers.Contract(chain.swapAddress, SWAP_VIEW_ABI, new ethers.JsonRpcProvider(chain.rpc));
+
+    const tokenInAddr = fromToken.address === 'ryu' ? chain.ryuAddress : fromToken.address;
+    const tokenOutAddr = toToken.address === 'ryu' ? chain.ryuAddress : toToken.address;
+
+    if(!tokenInAddr || !tokenOutAddr || tokenInAddr === 'native' || tokenOutAddr === 'native') {
+      calcOutputMock(amt);
+      return;
+    }
+
+    const amountBN = ethers.parseUnits(amt.toString(), Number(fromToken.decimals) || 18);
+    const [amountOut, fee] = await swapContract.getAmountOut(tokenInAddr, tokenOutAddr, amountBN);
+
+    const outFormatted = parseFloat(ethers.formatUnits(amountOut, Number(toToken.decimals) || 18));
+    const feeFormatted = parseFloat(ethers.formatUnits(fee, Number(fromToken.decimals) || 18));
+    const rate = outFormatted / (amt - parseFloat(ethers.formatUnits(fee, Number(fromToken.decimals) || 18)));
+
+    document.getElementById('toAmount').value = outFormatted.toFixed(6);
+    document.getElementById('routeRate').textContent = `1 ${fromToken.symbol} = ${rate.toFixed(6)} ${toToken.symbol}`;
+    document.getElementById('routeFee').textContent = feeFormatted.toFixed(6) + ' ' + fromToken.symbol;
+    document.getElementById('routeImpact').textContent = '0.1%';
+    document.getElementById('routeReceive').textContent = outFormatted.toFixed(6) + ' ' + toToken.symbol;
+
+    // USD estimates
+    const usdPrice = fromToken.symbol.includes('USD') ? 1 : fromToken.symbol === 'ETH' ? 2600 : 0.01;
+    const fromUsd = amt * usdPrice;
+    const toUsdPrice = toToken.symbol.includes('USD') ? 1 : toToken.symbol === 'ETH' ? 2600 : 0.01;
+    const toUsd = outFormatted * toUsdPrice;
+    document.getElementById('fromUsd').textContent = '≈ $' + fromUsd.toFixed(2);
+    document.getElementById('toUsd').textContent = '≈ $' + toUsd.toFixed(2);
+    ri.style.display = 'block';
+  } catch(e) {
+    calcOutputMock(amt);
+  }
+}
+
+function calcOutputMock(amt) {
+  const ri = document.getElementById('routeInfo');
   const rate = getRate(fromToken.symbol, toToken.symbol);
-  const bridgeFee = currentMode === 'bridge' ? 0.001 : 0;
   const swapFee = 0.003;
-  const output = amt * rate * (1 - swapFee - bridgeFee);
-  const impact = Math.min(5, (amt * 0.02)).toFixed(2);
+  const output = amt * rate * (1 - swapFee);
   document.getElementById('toAmount').value = output.toFixed(6);
   const ethUsd = 2600;
   const fromUsd = fromToken.symbol === 'ETH' ? amt * ethUsd : fromToken.symbol.includes('USD') ? amt : amt * 0.01;
@@ -1681,9 +1735,7 @@ function calcOutput() {
   document.getElementById('toUsd').textContent = '≈ $' + toUsd.toFixed(2);
   document.getElementById('routeRate').textContent = `1 ${fromToken.symbol} = ${rate.toFixed(6)} ${toToken.symbol}`;
   document.getElementById('routeFee').textContent = (amt * swapFee).toFixed(6) + ' ' + fromToken.symbol;
-  const impactEl = document.getElementById('routeImpact');
-  impactEl.textContent = impact + '%';
-  impactEl.className = parseFloat(impact) > 2 ? 'price-impact-high' : '';
+  document.getElementById('routeImpact').textContent = '< 0.1%';
   document.getElementById('routeReceive').textContent = output.toFixed(6) + ' ' + toToken.symbol;
   ri.style.display = 'block';
 }
@@ -1909,7 +1961,7 @@ async function doSwap(amt) {
     } else if(toToken.address === 'native') {
       // Token → ETH
       const tokenContract = new ethers.Contract(tokenInAddr, ERC20_APPROVE_ABI, signer);
-      const decimals = Number(fromToken.decimals) || 18;
+      const decimals = fromToken.decimals || 18;
       const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
       btn.innerHTML = '<span class="spinner"></span> Approving...';
@@ -1926,7 +1978,7 @@ async function doSwap(amt) {
     } else {
       // Token → Token
       const tokenContract = new ethers.Contract(tokenInAddr, ERC20_APPROVE_ABI, signer);
-      const decimals = Number(fromToken.decimals) || 18;
+      const decimals = fromToken.decimals || 18;
       const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
       btn.innerHTML = '<span class="spinner"></span> Approving...';
@@ -1993,8 +2045,11 @@ async function doBridge(amt) {
   isBridging = true;
 
   try {
-    // ARC → use CCTP for USDC
-    if(currentChain === 'arc' && fromToken.symbol === 'USDC') {
+    // ARC → use CCTP only for Ethereum Sepolia or Base Sepolia destinations
+    const cctpDestinations = ['ethereum_sepolia', 'base_sepolia'];
+    const isCCTPDest = toChain === 'ethereum_sepolia' || toChain === 'base_sepolia';
+    
+    if(currentChain === 'arc' && fromToken.symbol === 'USDC' && isCCTPDest) {
       await doCCTPBridge(amt, chain);
     } else {
       await doLockMintBridge(amt, chain);
