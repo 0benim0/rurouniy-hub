@@ -2307,7 +2307,8 @@ window.addEventListener('load', function() {
       }
     });
     window.ethereum.on('chainChanged', function(chainId) {
-      const matched = Object.entries(CHAINS).find(([k,c]) => c.chainId.toLowerCase() === chainId.toLowerCase());
+      const chainIdNum = parseInt(chainId, 16);
+      const matched = Object.entries(CHAINS).find(([k,c]) => Number(c.chainId) === chainIdNum);
       if(matched) {
         currentChain = matched[0];
         document.getElementById('chainSelectSB').value = matched[0];
