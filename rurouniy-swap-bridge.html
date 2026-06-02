@@ -2133,6 +2133,17 @@ function hideRyuInfo() { document.getElementById('ryuInfoTooltip').style.display
 
 // ========== INIT ==========
 window.addEventListener('load', function() {
+  // Set default tokens based on current chain
+  const initTokens = getChainTokens(currentChain);
+  fromToken = initTokens[0];
+  toToken = initTokens[1] || initTokens[0];
+  document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+  document.getElementById('fromTokenName').textContent = fromToken.symbol;
+  document.getElementById('fromTokenFull').textContent = fromToken.name;
+  document.getElementById('toTokenIcon').textContent = toToken.icon;
+  document.getElementById('toTokenName').textContent = toToken.symbol;
+  document.getElementById('toTokenFull').textContent = toToken.name;
+
   updateStatsDisplay();
   renderTxLog();
   updateActionBtn();
