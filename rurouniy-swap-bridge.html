@@ -2266,6 +2266,9 @@ function hideRyuInfo() { document.getElementById('ryuInfoTooltip').style.display
 
 // ========== INIT ==========
 window.addEventListener('load', function() {
+  // Update chain selector based on initial mode
+  updateChainSelector();
+
   // Set default tokens based on current chain
   const initTokens = getChainTokens(currentChain);
   fromToken = initTokens[0];
