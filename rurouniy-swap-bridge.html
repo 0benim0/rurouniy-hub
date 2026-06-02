@@ -1645,7 +1645,17 @@ function selectChain(key) {
     if(walletAddress && !isBridging) switchToChain(key);
   } else {
     toChain = key;
+    const toChainTokens = getChainTokens(key);
+    const toTokenExists = toChainTokens.find(t => t.symbol === toToken.symbol);
+    if(!toTokenExists) {
+      toToken = toChainTokens[0];
+      document.getElementById('toTokenIcon').textContent = toToken.icon;
+      document.getElementById('toTokenName').textContent = toToken.symbol;
+      document.getElementById('toTokenFull').textContent = toToken.name;
+    }
     if(toChain === fromChain) {
+    
+    
       fromChain = Object.keys(CHAINS).find(k => k !== key) || 'robinhood';
       currentChain = fromChain;
       document.getElementById('chainSelectSB').value = fromChain;
