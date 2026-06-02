@@ -1559,6 +1559,8 @@ function selectToken(symbol) {
   }
   closeTokenModal();
   calcOutput();
+  updateActionBtn();
+  loadRealBalances();
 }
 
 // ========== CHAIN MODAL ==========
@@ -1749,9 +1751,7 @@ function updateActionBtn() {
       btn.style.border = '1px solid #fcd34d';
     } else {
       btn.className = 'action-btn swap-btn';
-      const ft = document.getElementById('fromTokenName').textContent;
-      const tt = document.getElementById('toTokenName').textContent;
-      btn.innerHTML = `SWAP ${ft} → ${tt}`;
+      btn.innerHTML = `SWAP ${fromToken.symbol} → ${toToken.symbol}`;
       btn.disabled = false;
     }
   } else {
