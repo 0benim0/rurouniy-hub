@@ -1254,6 +1254,7 @@ let stats = { swaps: 0, bridges: 0, volume: 0 };
 let faucetTimer = null;
 let isBridging = false;
 let isSwapping = false;
+let isFlipping = false;
 
 // Load from localStorage
 try {
@@ -1665,6 +1666,7 @@ function closeModals(e) {
 // ========== FLIP ==========
 function flipTokens() {
   if(currentMode === 'bridge') {
+    isFlipping = true;
     [fromChain, toChain] = [toChain, fromChain];
     // Sync header dropdown with new fromChain
     currentChain = fromChain;
@@ -1694,7 +1696,8 @@ function flipTokens() {
     document.getElementById('toTokenFull').textContent = toToken.name;
 
     updateChainDisplay();
-    if(walletAddress) switchToChain(fromChain);
+    if(walletAddress) switchToChain(fromChain).finally(() => { isFlipping = false; });
+    else isFlipping = false;
     loadRealBalances();
   } else {
     [fromToken, toToken] = [toToken, fromToken];
@@ -2377,18 +2380,20 @@ window.addEventListener('load', function() {
         currentChain = matched[0];
         document.getElementById('chainSelectSB').value = matched[0];
 
-        // Reset tokens to first two of new chain
-        const newChainTokens = getChainTokens(matched[0]);
-        fromToken = newChainTokens[0];
-        toToken = newChainTokens[1] || newChainTokens[0];
-        document.getElementById('fromTokenIcon').textContent = fromToken.icon;
-        document.getElementById('fromTokenName').textContent = fromToken.symbol;
-        document.getElementById('fromTokenFull').textContent = fromToken.name;
-        document.getElementById('toTokenIcon').textContent = toToken.icon;
-        document.getElementById('toTokenName').textContent = toToken.symbol;
-        document.getElementById('toTokenFull').textContent = toToken.name;
-        document.getElementById('fromAmount').value = '';
-        document.getElementById('toAmount').value = '';
+        // Reset tokens to first two of new chain (skip if flipping)
+        if(!isFlipping) {
+          const newChainTokens = getChainTokens(matched[0]);
+          fromToken = newChainTokens[0];
+          toToken = newChainTokens[1] || newChainTokens[0];
+          document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+          document.getElementById('fromTokenName').textContent = fromToken.symbol;
+          document.getElementById('fromTokenFull').textContent = fromToken.name;
+          document.getElementById('toTokenIcon').textContent = toToken.icon;
+          document.getElementById('toTokenName').textContent = toToken.symbol;
+          document.getElementById('toTokenFull').textContent = toToken.name;
+          document.getElementById('fromAmount').value = '';
+          document.getElementById('toAmount').value = '';
+        }
 
         if(currentMode === 'bridge') fromChain = currentChain;
         updateActionBtn();
