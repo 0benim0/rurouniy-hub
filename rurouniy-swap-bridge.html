@@ -1909,7 +1909,7 @@ async function doSwap(amt) {
     } else if(toToken.address === 'native') {
       // Token → ETH
       const tokenContract = new ethers.Contract(tokenInAddr, ERC20_APPROVE_ABI, signer);
-      const decimals = fromToken.decimals || 18;
+      const decimals = Number(fromToken.decimals) || 18;
       const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
       btn.innerHTML = '<span class="spinner"></span> Approving...';
@@ -1926,7 +1926,7 @@ async function doSwap(amt) {
     } else {
       // Token → Token
       const tokenContract = new ethers.Contract(tokenInAddr, ERC20_APPROVE_ABI, signer);
-      const decimals = fromToken.decimals || 18;
+      const decimals = Number(fromToken.decimals) || 18;
       const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
       btn.innerHTML = '<span class="spinner"></span> Approving...';
