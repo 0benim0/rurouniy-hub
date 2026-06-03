@@ -1236,6 +1236,7 @@ let stats = { swaps: 0, bridges: 0, volume: 0 };
 let faucetTimer = null;
 let isBridging = false;
 let isSwapping = false;
+let isFlipping = false;
 
 // Load from localStorage
 try {
@@ -1655,13 +1656,25 @@ function closeModals(e) {
 // ========== FLIP ==========
 function flipTokens() {
   if(currentMode === 'bridge') {
+    isFlipping = true;
+    const oldFromSymbol = fromToken.symbol;
+    const oldToSymbol = toToken.symbol;
     [fromChain, toChain] = [toChain, fromChain];
-    // Sync header dropdown with new fromChain
     currentChain = fromChain;
     document.getElementById('chainSelectSB').value = fromChain;
+    const newFromTokens = getChainTokens(fromChain);
+    const newToTokens = getChainTokens(toChain);
+    fromToken = newFromTokens.find(t => t.symbol === oldToSymbol) || newFromTokens.find(t => t.symbol === 'RYU') || newFromTokens[0];
+    toToken = newToTokens.find(t => t.symbol === oldFromSymbol) || newToTokens.find(t => t.symbol === 'RYU') || newToTokens[0];
+    document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+    document.getElementById('fromTokenName').textContent = fromToken.symbol;
+    document.getElementById('fromTokenFull').textContent = fromToken.name;
+    document.getElementById('toTokenIcon').textContent = toToken.icon;
+    document.getElementById('toTokenName').textContent = toToken.symbol;
+    document.getElementById('toTokenFull').textContent = toToken.name;
     updateChainDisplay();
-    // Switch wallet chain
-    if(walletAddress) switchToChain(fromChain);
+    if(walletAddress) switchToChain(fromChain).finally(() => { isFlipping = false; });
+    else isFlipping = false;
     loadRealBalances();
   } else {
     updateActionBtn();
