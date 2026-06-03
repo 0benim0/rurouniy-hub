@@ -672,6 +672,17 @@ main {
 }
 .toast.show { display: block; animation: toastIn 0.3s ease; }
 @keyframes toastIn { from{transform:translateX(-50%) translateY(-10px);opacity:0} to{transform:translateX(-50%) translateY(0);opacity:1} }
+@keyframes bannerIn { from{transform:translateX(-50%) translateY(-20px);opacity:0} to{transform:translateX(-50%) translateY(0);opacity:1} }
+@keyframes bannerOut { from{transform:translateX(-50%) translateY(0) scale(1);opacity:1} to{transform:translateX(-50%) translateY(-30px) scale(0.85);opacity:0} }
+@keyframes shimmerInfo { 0%{background-position:-200% center} 100%{background-position:200% center} }
+.info-banner { position:fixed; top:90px; left:50%; transform:translateX(-50%); z-index:999; background:linear-gradient(135deg,#0c1a3a,#0f2456); border:1px solid rgba(98,126,234,0.5); border-radius:14px; padding:14px 20px; display:none; align-items:center; gap:14px; max-width:420px; width:90%; animation:bannerIn 0.4s ease; }
+.info-banner.show { display:flex; }
+.info-banner.hide { animation:bannerOut 0.5s ease forwards; }
+.info-icon { width:40px; height:40px; border-radius:50%; background:rgba(98,126,234,0.2); border:1px solid rgba(98,126,234,0.4); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.info-content { flex:1; }
+.info-title { font-size:13px; font-weight:700; background:linear-gradient(90deg,#627EEA,#a78bfa,#627EEA); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; animation:shimmerInfo 2s linear infinite; margin-bottom:4px; }
+.info-sub { font-size:11px; color:#9ca3af; line-height:1.5; }
+.info-badge { background:rgba(98,126,234,0.15); color:#627EEA; border:1px solid rgba(98,126,234,0.3); border-radius:6px; padding:3px 8px; font-size:10px; font-weight:700; letter-spacing:1px; flex-shrink:0; }
 @keyframes toastOut { from{transform:translateX(0) scale(1);opacity:1} to{transform:translateX(20px) scale(0.8);opacity:0} }
 .toast.hide { animation: toastOut 0.4s ease forwards; }
 @keyframes faucetPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,0.4)} 50%{box-shadow:0 0 0 10px rgba(255,215,0,0)} }
@@ -1095,6 +1106,14 @@ for(var i=0;i<18;i++){
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="info-banner" id="infoBanner">
+  <div class="info-icon" id="infoBannerIcon">⟠</div>
+  <div class="info-content">
+    <div class="info-title">Switched to Bridge Mode</div>
+    <div class="info-sub" id="infoBannerSub">This chain is available for Bridge only — USDC via Circle CCTP</div>
+  </div>
+  <div class="info-badge">BRIDGE ONLY</div>
+</div>
 
 <script>
 // ========== CONFIG ==========
@@ -1457,6 +1476,20 @@ btn.className = 'action-btn faucet-ready';
 }
 
 // ========== UTILS ==========
+function showBridgeOnlyBanner(chainName, icon) {
+  const banner = document.getElementById('infoBanner');
+  const iconEl = document.getElementById('infoBannerIcon');
+  const subEl = document.getElementById('infoBannerSub');
+  iconEl.textContent = icon;
+  subEl.textContent = chainName + ' is available for Bridge only — USDC via Circle CCTP';
+  banner.classList.remove('hide');
+  banner.classList.add('show');
+  clearTimeout(banner._t);
+  banner._t = setTimeout(() => {
+    banner.classList.add('hide');
+    setTimeout(() => { banner.classList.remove('show'); banner.classList.remove('hide'); }, 500);
+  }, 6000);
+}
 function showToast(msg) {
   const t = document.getElementById('toast');
   if(!t) return;
@@ -2299,7 +2332,7 @@ async function switchChainSB() {
   currentChain = sel;
   if(CHAINS[sel] && CHAINS[sel].isBridgeOnly && currentMode !== 'bridge') {
     setMode('bridge');
-    showToast('ℹ️ ' + CHAINS[sel].name + ' supports USDC bridge only via CCTP');
+    showBridgeOnlyBanner(CHAINS[sel].name, CHAINS[sel].icon);
   }
   // Reset tokens to first two tokens of new chain
   const chainTokens = getChainTokens(sel);
