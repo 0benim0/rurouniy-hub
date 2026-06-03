@@ -1134,6 +1134,22 @@ const CHAINS = {
     swapAddress: '0xD08e9e13A17136DBD65b0ff97425239903Cd5E2F',
     bridgeAddress: '0xC1d745360D25343F7Da1A609691b02e2278E9642',
     liquidityReady: false
+  },
+  ethereum_sepolia: {
+    name: 'Ethereum Sepolia', chainId: '0xaa36a7', chainIdDec: 11155111,
+    rpc: 'https://ethereum-sepolia-rpc.publicnode.com/',
+    explorer: 'https://sepolia.etherscan.io',
+    color: '#627EEA', icon: '⟠',
+    ryuAddress: null, swapAddress: null, bridgeAddress: null,
+    liquidityReady: false, isBridgeOnly: true
+  },
+  base_sepolia: {
+    name: 'Base Sepolia', chainId: '0x14a00', chainIdDec: 84512,
+    rpc: 'https://sepolia.base.org',
+    explorer: 'https://sepolia.basescan.org',
+    color: '#0052FF', icon: '🔵',
+    ryuAddress: null, swapAddress: null, bridgeAddress: null,
+    liquidityReady: false, isBridgeOnly: true
   }
 };
 
@@ -1195,6 +1211,14 @@ const CHAIN_TOKENS = {
     { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
     { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
     { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac' },
+  ],
+  ethereum_sepolia: [
+    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
+    { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' },
+  ],
+  base_sepolia: [
+    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
+    { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' },
   ],
 };
 
@@ -1611,7 +1635,11 @@ function closeChainModal() {
 }
 function renderChainList() {
   const current = currentChainTarget === 'from' ? fromChain : toChain;
-  document.getElementById('chainList').innerHTML = Object.entries(CHAINS).map(([key, c]) => `
+  const entries = Object.entries(CHAINS).filter(([key, c]) => {
+    if(currentMode === 'swap') return !c.isBridgeOnly;
+    return true;
+  });
+  document.getElementById('chainList').innerHTML = entries.map(([key, c]) => `
     <div class="chain-list-item ${key===current?'selected':''}" onclick="selectChain('${key}')">
       <div class="cli-dot" style="background:${c.color};box-shadow:0 0 8px ${c.color};"></div>
       <div class="cli-info">
@@ -2042,9 +2070,14 @@ async function doBridge(amt) {
   isBridging = true;
 
   try {
-    // ARC → use CCTP for USDC
-    if(currentChain === 'arc' && fromToken.symbol === 'USDC') {
+    const isCCTPDest = toChain === 'ethereum_sepolia' || toChain === 'base_sepolia';
+
+    if(fromChain === 'arc' && fromToken.symbol === 'USDC' && isCCTPDest) {
       await doCCTPBridge(amt, chain);
+    } else if(isCCTPDest) {
+      showToast('⚠️ Only USDC from ARC can bridge to Ethereum/Base Sepolia');
+      btn.disabled = false;
+      btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
     } else {
       await doLockMintBridge(amt, chain);
     }
