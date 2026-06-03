@@ -226,7 +226,9 @@ main {
   letter-spacing: 1px;
   color: #0f1419;
 }
-.card-title.swap-mode { color: #0066cc; }
+@keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+.card-title.swap-mode { background: linear-gradient(90deg, #0066cc 20%, #00d9ff 40%, #00a86b 60%, #0066cc 80%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shimmer 2.5s linear infinite; }
+.card-title.bridge-mode { background: linear-gradient(90deg, #7c3aed 20%, #a78bfa 40%, #00d9ff 60%, #7c3aed 80%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: shimmer 2.5s linear infinite; }
 .card-title.bridge-mode { color: #7c3aed; }
 .settings-btn {
   width: 34px; height: 34px;
