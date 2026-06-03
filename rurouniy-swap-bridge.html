@@ -850,6 +850,8 @@ for(var i=0;i<18;i++){
       <option value="arc">ARC</option>
       <option value="giwa">GIWA</option>
       <option value="ink">INK Sepolia</option>
+      <option value="ethereum_sepolia">Ethereum Sepolia</option>
+      <option value="base_sepolia">Base Sepolia</option>
     </select>
 
     <button class="wallet-btn" id="walletBtn" onclick="toggleWallet()">Connect Wallet</button>
@@ -2290,7 +2292,9 @@ async function switchChainSB() {
   if(isBridging) { showToast('Please wait for bridge to complete'); document.getElementById('chainSelectSB').value = currentChain; return; }
   if(isSwapping) { showToast('Please wait for swap to complete'); document.getElementById('chainSelectSB').value = currentChain; return; }
   currentChain = sel;
-
+  if(CHAINS[sel] && CHAINS[sel].isBridgeOnly && currentMode !== 'bridge') {
+    setMode('bridge');
+  }
   // Reset tokens to first two tokens of new chain
   const chainTokens = getChainTokens(sel);
   fromToken = chainTokens[0];
