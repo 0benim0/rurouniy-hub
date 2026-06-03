@@ -2266,7 +2266,7 @@ async function doCCTPBridge(amt, chain) {
   btn.innerHTML = '<span class="spinner"></span> Step 3/3 — Circle Attestation...';
   showToast('Step 3/3 — Waiting for Circle attestation (~20 sec)...');
   await tx.wait();
-
+  fireSuccessParticles();
   showToast('✅ Bridge initiated! USDC will arrive on destination chain shortly.');
   btn.disabled = false;
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
