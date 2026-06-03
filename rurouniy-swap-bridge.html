@@ -2131,7 +2131,7 @@ async function doSwap(amt) {
       const tx = await swapContract.swap(tokenInAddr, tokenOutAddr, amountBN, 0);
       await tx.wait();
     }
-
+    fireSuccessParticles();
     showToast('✅ Swap successful!');
     stats.swaps++;
     txLog.unshift({
