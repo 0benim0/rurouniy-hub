@@ -111,14 +111,24 @@ header {
 .logo {
   font-family: 'Orbitron', sans-serif;
   font-size: 16px; font-weight: 900;
-  color: #0066cc;
+  background: linear-gradient(90deg, #0066cc 10%, #00d9ff 30%, #00a86b 50%, #f59e0b 70%, #0066cc 90%);
+background-size: 200% auto;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+animation: shimmer 3s linear infinite;
   letter-spacing: 2px;
 }
-.logo span { color: #f59e0b; }
+
 .logo-sub {
   font-family: 'Rajdhani', sans-serif;
   font-size: 11px; font-weight: 700;
-  color: #374151;
+  background: linear-gradient(90deg, #6b7f99 20%, #00d9ff 50%, #6b7f99 80%);
+background-size: 200% auto;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+animation: shimmer 4s linear infinite;
   letter-spacing: 3px;
   text-transform: uppercase;
 }
@@ -136,7 +146,7 @@ header {
   white-space: nowrap;
 }
 .wallet-btn:hover { box-shadow: var(--glow); transform: translateY(-1px); }
-.wallet-btn.connected { background: var(--accent2); color: #fff; }
+.wallet-btn.connected { background: rgba(79,255,176,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
 
 /* CHAIN SELECT */
 .chain-pill {
@@ -664,7 +674,7 @@ main {
 @keyframes toastIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
 @keyframes sandRotate { 0%{transform:rotate(0deg)} 50%{transform:rotate(180deg)} 100%{transform:rotate(180deg)} }
 .hourglass { display:inline-block; animation:sandRotate 1.5s ease-in-out infinite; font-size:22px; }
-@keyframes particleFly { 0%{transform:translateY(0) scale(1);opacity:1;} 100%{transform:translateY(-120px) scale(0);opacity:0;} }  
+@keyframes particleFly { 0%{transform:translateY(0) scale(1);opacity:1;} 100%{transform:translateY(-120px) scale(0);opacity:0;} }
 
 /* SPINNER */
 .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(0,0,0,0.2); border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
