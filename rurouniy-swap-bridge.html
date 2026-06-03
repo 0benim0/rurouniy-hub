@@ -1863,7 +1863,7 @@ async function connectWallet() {
 
     // Check current chain
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    const matched = Object.entries(CHAINS).find(([k,c]) => c.chainId.toLowerCase() === chainId.toLowerCase());
+    const matched = Object.entries(CHAINS).find(([k,c]) => c.chainIdDec === parseInt(chainId, 16) || parseInt(c.chainId, 16) === parseInt(chainId, 16));
 
     if(matched) {
       // User is already on a supported chain
@@ -2177,6 +2177,7 @@ window.addEventListener('load', function() {
   const initTokens = getChainTokens(currentChain);
   fromToken = initTokens[0];
   toToken = initTokens[1] || initTokens[0];
+  
   document.getElementById('fromTokenIcon').textContent = fromToken.icon;
   document.getElementById('fromTokenName').textContent = fromToken.symbol;
   document.getElementById('fromTokenFull').textContent = fromToken.name;
@@ -2202,24 +2203,26 @@ window.addEventListener('load', function() {
       }
     });
     window.ethereum.on('chainChanged', function(chainId) {
-      const matched = Object.entries(CHAINS).find(([k,c]) => c.chainId.toLowerCase() === chainId.toLowerCase());
+      const matched = Object.entries(CHAINS).find(([k,c]) => c.chainIdDec === parseInt(chainId, 16) || parseInt(c.chainId, 16) === parseInt(chainId, 16));
       if(matched) {
         currentChain = matched[0];
         document.getElementById('chainSelectSB').value = matched[0];
 
-        // Reset tokens to first two of new chain
-        const newChainTokens = getChainTokens(matched[0]);
-        fromToken = newChainTokens[0];
-        toToken = newChainTokens[1] || newChainTokens[0];
-        document.getElementById('fromTokenIcon').textContent = fromToken.icon;
-        document.getElementById('fromTokenName').textContent = fromToken.symbol;
-        document.getElementById('fromTokenFull').textContent = fromToken.name;
-        document.getElementById('toTokenIcon').textContent = toToken.icon;
-        document.getElementById('toTokenName').textContent = toToken.symbol;
-        document.getElementById('toTokenFull').textContent = toToken.name;
-        document.getElementById('fromAmount').value = '';
-        document.getElementById('toAmount').value = '';
-
+        
+        
+        if(!isFlipping) {
+          const newChainTokens = getChainTokens(matched[0]);
+          fromToken = newChainTokens[0];
+          toToken = newChainTokens[1] || newChainTokens[0];
+          document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+          document.getElementById('fromTokenName').textContent = fromToken.symbol;
+          document.getElementById('fromTokenFull').textContent = fromToken.name;
+          document.getElementById('toTokenIcon').textContent = toToken.icon;
+          document.getElementById('toTokenName').textContent = toToken.symbol;
+          document.getElementById('toTokenFull').textContent = toToken.name;
+          document.getElementById('fromAmount').value = '';
+          document.getElementById('toAmount').value = '';
+        }
         if(currentMode === 'bridge') fromChain = currentChain;
         updateActionBtn();
         calcOutput();
