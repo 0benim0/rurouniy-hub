@@ -672,6 +672,8 @@ main {
 }
 .toast.show { display: block; animation: toastIn 0.3s ease; }
 @keyframes toastIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes toastOut { from{transform:translateX(0) scale(1);opacity:1} to{transform:translateX(20px) scale(0.8);opacity:0} }
+.toast.hide { animation: toastOut 0.4s ease forwards; }
 @keyframes faucetPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,0.4)} 50%{box-shadow:0 0 0 10px rgba(255,215,0,0)} }
 @keyframes shimmerBtn { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
 @keyframes countdownPulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
@@ -1459,7 +1461,10 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   if(!t) return;
   t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3500);
+  clearTimeout(t._t); t._t = setTimeout(() => {
+    t.classList.add('hide');
+    setTimeout(() => { t.classList.remove('show'); t.classList.remove('hide'); }, 400);
+  }, 5000);
 }
 function saveStats() {
   localStorage.setItem('ryuSwapStats', JSON.stringify(stats));
