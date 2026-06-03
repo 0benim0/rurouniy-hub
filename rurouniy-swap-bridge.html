@@ -672,6 +672,14 @@ main {
 }
 .toast.show { display: block; animation: toastIn 0.3s ease; }
 @keyframes toastIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes faucetPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,0.4)} 50%{box-shadow:0 0 0 10px rgba(255,215,0,0)} }
+@keyframes shimmerBtn { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+@keyframes countdownPulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+.faucet-ready { background:linear-gradient(90deg,#ffd700,#ff9100,#ffd700) !important; background-size:200% !important; color:#000 !important; animation:faucetPulse 1.5s ease-in-out infinite,shimmerBtn 2s linear infinite !important; }
+.faucet-cooldown { background:linear-gradient(135deg,#e5e7eb,#f3f4f6) !important; color:#374151 !important; animation:countdownPulse 1s ease-in-out infinite !important; }
+.faucet-loading { background:linear-gradient(135deg,#dbeafe,#bfdbfe) !important; color:#1d4ed8 !important; }
+[data-theme="dark"] .faucet-cooldown { background:linear-gradient(135deg,#374151,#4b5563) !important; color:#9ca3af !important; }
+[data-theme="dark"] .faucet-loading { background:linear-gradient(135deg,#1e3a5f,#1e4d6b) !important; color:#60a5fa !important; }
 @keyframes sandRotate { 0%{transform:rotate(0deg)} 50%{transform:rotate(180deg)} 100%{transform:rotate(180deg)} }
 .hourglass { display:inline-block; animation:sandRotate 1.5s ease-in-out infinite; font-size:22px; }
 @keyframes particleFly { 0%{transform:translateY(0) scale(1);opacity:1;} 100%{transform:translateY(-120px) scale(0);opacity:0;} }
@@ -1022,7 +1030,7 @@ for(var i=0;i<18;i++){
       <div style="font-family:'Orbitron',sans-serif;font-size:32px;font-weight:900;letter-spacing:4px;margin-bottom:6px;" id="faucetTimer">--:--:--</div>
       <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:16px;">NEXT RESET — 00:00 UTC</div>
       <button class="action-btn" id="faucetClaimBtn" onclick="claimFaucet()" disabled style="background:linear-gradient(135deg,#ffd700,#ff9100);color:#000;margin-top:0;">
-        CONNECT WALLET TO CLAIM
+        🔌 CONNECT WALLET TO CLAIM
       </button>
     </div>
 
@@ -1318,6 +1326,8 @@ function initRyuContract() {
   const chain = CHAINS[currentChain];
   if(!chain.ryuAddress || !signer) return;
   ryuContract = new ethers.Contract(chain.ryuAddress, RYU_ABI, signer);
+  const btn = document.getElementById('faucetClaimBtn');
+  if(btn) { btn.textContent = '⌛ LOADING...'; btn.className = 'action-btn faucet-loading'; }
   loadFaucetStatus();
   loadRyuBalance();
 }
@@ -1330,7 +1340,12 @@ async function loadRyuBalance() {
     document.getElementById('ryuBalance').textContent = fmt + ' RYU';
   } catch(e) {}
 }
-
+function formatTime(secs) {
+  const h = Math.floor(secs/3600);
+  const m = Math.floor((secs%3600)/60);
+  const s = secs%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
 async function loadFaucetStatus() {
   if(!ryuContract || !walletAddress) return;
   try {
@@ -1339,13 +1354,16 @@ async function loadFaucetStatus() {
     const btn = document.getElementById('faucetClaimBtn');
     if(secsNum === 0) {
       btn.disabled = false;
-      btn.textContent = 'CLAIM 100 RYU';
+      btn.textContent = '🎁 CLAIM 100 RYU';
+      btn.className = 'action-btn faucet-ready';
       btn.style.opacity='1';
       document.getElementById('faucetTimer').textContent = 'Ready to claim!';
       document.getElementById('faucetTimer').style.color = 'var(--accent2)';
       if(faucetTimer) { clearInterval(faucetTimer); faucetTimer = null; }
     } else {
       btn.disabled = true;
+      btn.textContent = '⏳ Next claim in ' + formatTime(secsNum);
+      btn.className = 'action-btn faucet-cooldown';
       startFaucetCountdown(secsNum);
     }
     const swapRem = await ryuContract.swapEarnRemainingToday(walletAddress);
@@ -1364,7 +1382,8 @@ function startFaucetCountdown(totalSecs) {
       document.getElementById('faucetTimer').textContent = 'Ready to claim!';
       document.getElementById('faucetTimer').style.color = 'var(--accent2)';
       document.getElementById('faucetClaimBtn').disabled = false;
-      document.getElementById('faucetClaimBtn').textContent = 'CLAIM 100 RYU';
+      document.getElementById('faucetClaimBtn').textContent = '🎁 CLAIM 100 RYU';
+      document.getElementById('faucetClaimBtn').className = 'action-btn faucet-ready';
       return;
     }
     const h = Math.floor(remaining / 3600);
@@ -1373,6 +1392,8 @@ function startFaucetCountdown(totalSecs) {
     const pad = n => String(n).padStart(2,'0');
     document.getElementById('faucetTimer').textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
     document.getElementById('faucetTimer').style.color = 'var(--accent4)';
+    const cb = document.getElementById('faucetClaimBtn');
+    if(cb && cb.disabled) cb.textContent = '⏳ Next claim in ' + pad(h) + ':' + pad(m) + ':' + pad(s);
     remaining--;
   }
   tick();
@@ -1400,7 +1421,8 @@ async function claimFaucet() {
       showToast('Error: ' + msg.slice(0,60));
     }
     btn.disabled = false;
-    btn.textContent = 'CLAIM 100 RYU';
+    btn.textContent = '🎁 CLAIM 100 RYU';
+btn.className = 'action-btn faucet-ready';
   }
 }
 
