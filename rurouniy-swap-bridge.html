@@ -1292,6 +1292,10 @@ try {
   const savedTx = localStorage.getItem('ryuSwapTx');
   if(savedTx) txLog = JSON.parse(savedTx);
 } catch(e){}
+updateStatsDisplay();
+renderTxLog();
+updateStatsDisplay();
+renderTxLog();
 
 // ========== REAL BALANCES ==========
 async function getTokenBalance(token, chainKey) {
@@ -1470,8 +1474,9 @@ async function claimFaucet() {
       showToast('Error: ' + msg.slice(0,60));
     }
     btn.disabled = false;
+    btn.style = '';
     btn.textContent = '🎁 CLAIM 100 RYU';
-btn.className = 'action-btn faucet-ready';
+    btn.className = 'action-btn faucet-ready';
   }
 }
 
@@ -1500,8 +1505,10 @@ function showToast(msg) {
   }, 5000);
 }
 function saveStats() {
-  localStorage.setItem('ryuSwapStats', JSON.stringify(stats));
-  localStorage.setItem('ryuSwapTx', JSON.stringify(txLog.slice(0,20)));
+  try {
+    localStorage.setItem('ryuSwapStats', JSON.stringify(stats));
+    localStorage.setItem('ryuSwapTx', JSON.stringify(txLog.slice(0,20)));
+  } catch(e) {}
 }
 function updateStatsDisplay() {
   const s = document.getElementById('statSwaps');
@@ -1599,7 +1606,7 @@ function openTokenModal(target) {
     ? (currentMode === 'bridge' ? fromChain : currentChain)
     : (currentMode === 'bridge' ? toChain : currentChain);
   renderTokenList(getChainTokens(chainKey));
-  setTimeout(() => document.getElementById('tokenSearch').focus(), 100);
+  setTimeout(() => document.getElementById('tokenSearch').focus(), 300);
 }
 function closeTokenModal() {
   document.getElementById('tokenModal').classList.remove('open');
@@ -1691,6 +1698,11 @@ function renderChainList() {
   `).join('');
 }
 function selectChain(key) {
+  if(CHAINS[key].isBridgeOnly && currentChainTarget === 'from') {
+    showToast('⚠️ ' + CHAINS[key].name + ' can only be used as destination!');
+    closeChainModal();
+    return;
+  }
   if(currentChainTarget === 'from') {
     fromChain = key;
     if(fromChain === toChain) {
@@ -1760,7 +1772,6 @@ function flipTokens() {
   const toVal = document.getElementById('toAmount').value;
   document.getElementById('fromAmount').value = toVal;
   document.getElementById('toAmount').value = fromVal;
-  calcOutput();
 }
 
 // ========== CALC OUTPUT (mock rates) ==========
@@ -2191,7 +2202,7 @@ async function doCCTPBridge(amt, chain) {
 
 async function doLockMintBridge(amt, chain) {
   const btn = document.getElementById('actionBtn');
-  const destChainId = CHAINS[toChain].chainId;
+  const destChainId = CHAINS[toChain].chainIdDec;
 
   const bridgeContract = new ethers.Contract(chain.bridgeAddress, BRIDGE_ABI, signer);
 
@@ -2271,8 +2282,6 @@ window.addEventListener('load', function() {
   document.getElementById('toTokenName').textContent = toToken.symbol;
   document.getElementById('toTokenFull').textContent = toToken.name;
 
-  updateStatsDisplay();
-  renderTxLog();
   updateActionBtn();
 
   if(window.ethereum) {
@@ -2296,7 +2305,7 @@ window.addEventListener('load', function() {
 
         
         
-        if(!isFlipping) {
+        if(!isFlipping && !isBridging && !isSwapping) {
           const newChainTokens = getChainTokens(matched[0]);
           fromToken = newChainTokens[0];
           toToken = newChainTokens[1] || newChainTokens[0];
