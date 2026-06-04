@@ -674,6 +674,7 @@ main {
 @keyframes toastIn { from{transform:translateX(-50%) translateY(-10px);opacity:0} to{transform:translateX(-50%) translateY(0);opacity:1} }
 @keyframes bannerIn { from{transform:translateX(-50%) translateY(-20px);opacity:0} to{transform:translateX(-50%) translateY(0);opacity:1} }
 @keyframes bannerOut { from{transform:translateX(-50%) translateY(0) scale(1);opacity:1} to{transform:translateX(-50%) translateY(-30px) scale(0.85);opacity:0} }
+@keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
 @keyframes shimmerInfo { 0%{background-position:-200% center} 100%{background-position:200% center} }
 .info-banner { position:fixed; top:90px; left:50%; transform:translateX(-50%); z-index:999; background:linear-gradient(135deg,#0c1a3a,#0f2456); border:1px solid rgba(98,126,234,0.5); border-radius:14px; padding:14px 20px; display:none; align-items:center; gap:14px; max-width:420px; width:90%; animation:bannerIn 0.4s ease; }
 .info-banner.show { display:flex; }
@@ -1294,8 +1295,6 @@ try {
 } catch(e){}
 updateStatsDisplay();
 renderTxLog();
-updateStatsDisplay();
-renderTxLog();
 
 // ========== REAL BALANCES ==========
 async function getTokenBalance(token, chainKey) {
@@ -1715,6 +1714,14 @@ function selectChain(key) {
     if(walletAddress && !isBridging) switchToChain(key);
   } else {
     toChain = key;
+    const toChainTokens = getChainTokens(key);
+    const toTokenExists = toChainTokens.find(t => t.symbol === toToken.symbol);
+    if(!toTokenExists) {
+      toToken = toChainTokens[0];
+      document.getElementById('toTokenIcon').textContent = toToken.icon;
+      document.getElementById('toTokenName').textContent = toToken.symbol;
+      document.getElementById('toTokenFull').textContent = toToken.name;
+    }
     if(toChain === fromChain) {
       fromChain = Object.keys(CHAINS).find(k => k !== key) || 'robinhood';
       currentChain = fromChain;
