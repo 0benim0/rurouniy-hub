@@ -2160,6 +2160,7 @@ async function doCCTPBridge(amt, chain) {
 
   btn.innerHTML = '<span class="hourglass">⏳</span> Switching to ARC...';
   await switchToChain('arc');
+  await new Promise(resolve => setTimeout(resolve, 1500));
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
   const tokenContract = new ethers.Contract(usdcAddress, ERC20_ABI, signer);
@@ -2171,7 +2172,7 @@ async function doCCTPBridge(amt, chain) {
   showToast('Step 1/3 — Approving USDC...');
 
   const allowance = await tokenContract.allowance(walletAddress, chain.bridgeAddress);
-  if(allowance < amountBN) {
+  if(BigInt(allowance.toString()) < BigInt(amountBN.toString())) {
     const approveTx = await tokenContract.approve(chain.bridgeAddress, amountBN);
     await approveTx.wait();
   }
