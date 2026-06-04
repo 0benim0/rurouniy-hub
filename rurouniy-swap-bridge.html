@@ -2158,6 +2158,10 @@ async function doCCTPBridge(amt, chain) {
   const usdcAddress = '0x3600000000000000000000000000000000000000';
   const destDomain = CCTP_DOMAINS[toChain] !== undefined ? CCTP_DOMAINS[toChain] : CCTP_DOMAINS.ethereum_sepolia;
 
+  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to ARC...';
+  await switchToChain('arc');
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
   const tokenContract = new ethers.Contract(usdcAddress, ERC20_ABI, signer);
   const decimals = await tokenContract.decimals();
   const amountBN = ethers.parseUnits(amt.toString(), decimals);
