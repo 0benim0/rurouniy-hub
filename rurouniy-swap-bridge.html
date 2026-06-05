@@ -2157,7 +2157,7 @@ async function doCCTPBridge(amt, chain) {
   const btn = document.getElementById('actionBtn');
   const usdcAddress = '0x3600000000000000000000000000000000000000';
   const bridgingKit = '0xC5567a5E3370d4DBfB0540025078e283e36A363d';
-  const messageTransmitter = '0xe737e5cEBeebA77Efe34D4aA090756590b1Ce275';
+  const messageTransmitter = ethers.getAddress('0xe737e5cebeeba77efe34d4aa090756590b1ce275');
   const destDomain = CCTP_DOMAINS[toChain] !== undefined ? CCTP_DOMAINS[toChain] : 0;
   const feeRecipient = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
 
