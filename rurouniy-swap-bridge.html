@@ -2142,7 +2142,7 @@ async function doBridge(amt) {
   } catch(e) {
     const msg = e.message || '';
     if(msg.includes('network changed') || msg.includes('NE')) {
-      showToast('⚠️ Network changed during bridge — TX may still complete. Check explorer!');
+      return;
     } else {
       showToast('Error: ' + msg.slice(0, 60));
     }
