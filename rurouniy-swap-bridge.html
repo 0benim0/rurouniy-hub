@@ -2174,7 +2174,7 @@ async function doCCTPBridge(amt, chain) {
   // Step 1 - Approve USDC für BridgingKit
   btn.innerHTML = '<span class="hourglass">⏳</span> Step 1/2 — Approving USDC...';
   showToast('Step 1/2 — Approving USDC...');
-  const approveTx = await tokenContract.approve(bridgingKit, amountBN);
+  const approveTx = await tokenContract.approve(bridgingKit, amountBN + feeBN);
   await approveTx.wait();
 
   // Step 2 - bridgeWithPreapproval aufrufen
