@@ -1576,7 +1576,11 @@ function setMode(mode) {
     bridgeTimeRow.style.display = 'flex';
     // Set different chains for bridge
     fromChain = currentChain;
-    toChain = Object.keys(CHAINS).find(k => k !== currentChain) || 'arc';
+    if(currentChain === 'ethereum_sepolia' || currentChain === 'base_sepolia') {
+      toChain = 'arc';
+    } else {
+      toChain = Object.keys(CHAINS).find(k => k !== currentChain && !CHAINS[k].isBridgeOnly) || 'arc';
+    }
     updateChainDisplay();
     updateActionBtn();
   }
