@@ -1126,7 +1126,7 @@ const CHAINS = {
     color: '#00d9ff', icon: '⬡',
     ryuAddress: '0x1f3E5c52Ee65d89F3E70E7bD9Fa01a335829E63C',
     swapAddress: '0xa26a06A3e04Ec174c07FB941C4eA1dBff405e9BF',
-    bridgeAddress: '0xf1Ba4B79eAc58Bbd333649CF38E10aFfca36c48B',
+    bridgeAddress: '0xc2e8e8B0BF8D9c00735DD832A48E57654CC0F484',
     liquidityReady: false
   },
   arc: {
@@ -1136,7 +1136,7 @@ const CHAINS = {
     color: '#4fffb0', icon: '◈',
     ryuAddress: '0x092D14CF75E9e40DF4FF37775A620F1A6EcE8a13',
     swapAddress: '0x7a77d9fbfDA16A0Bd80Ee8b8CAeE044dd6781119',
-    bridgeAddress: '0x625BB46FF60266f7B47B7E3e1B1B70dDE1dA2532',
+    bridgeAddress: '0x5674b12887D1CF23139Ee1D40238083C20361D4B',
     liquidityReady: true
   },
   giwa: {
@@ -1146,7 +1146,7 @@ const CHAINS = {
     color: '#a78bfa', icon: '◆',
     ryuAddress: '0x25832a57D698C9072C71aA735Be2D11A48e9a1A6',
     swapAddress: '0x2121C6c9EEfEA700831b16Ba5791a145599fb54B',
-    bridgeAddress: '0x387f94407c87Ced6dD343db53EbCb496b2C41ca3',
+    bridgeAddress: '0x16b92c630065f3b84130b18Bdf12522e1Fd86D76',
     liquidityReady: false
   },
   ink: {
@@ -1156,7 +1156,7 @@ const CHAINS = {
     color: '#ffd700', icon: '✦',
     ryuAddress: '0xAE28B6F4705eeAA72690D0DF423a7169c6715051',
     swapAddress: '0xD08e9e13A17136DBD65b0ff97425239903Cd5E2F',
-    bridgeAddress: '0xC1d745360D25343F7Da1A609691b02e2278E9642',
+    bridgeAddress: '0x25832a57D698C9072C71aA735Be2D11A48e9a1A6',
     liquidityReady: false
   },
   ethereum_sepolia: {
@@ -2311,7 +2311,26 @@ async function doLockMintBridge(amt, chain) {
     await tx.wait();
   }
 
-  showToast('✅ Bridge TX sent! Tokens will arrive on ' + CHAINS[toChain].name + ' shortly.');
+  // Step 3 - Switch to destination and mint
+  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to destination...';
+  showToast('Switching to ' + CHAINS[toChain].name + '...');
+  await switchToChain(toChain);
+  await new Promise(r => setTimeout(r, 1500));
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
+
+  btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Minting tokens...';
+  showToast('Step 3/3 — Minting ' + fromToken.symbol + ' on ' + CHAINS[toChain].name + '...');
+
+  const MINT_ABI = ["function mintTokens(address user, address token, uint256 amount, uint256 sourceChainId, uint256 nonce) external"];
+  const destChain = CHAINS[toChain];
+  const destBridgeContract = new ethers.Contract(destChain.bridgeAddress, MINT_ABI, signer);
+  const tokenAddr2 = fromToken.address === 'ryu' ? destChain.ryuAddress : fromToken.address;
+  const nonce = Date.now();
+  const mintTx = await destBridgeContract.mintTokens(walletAddress, tokenAddr2, ethers.parseUnits(amt.toString(), fromToken.decimals), CHAINS[fromChain].chainIdDec, nonce);
+  await mintTx.wait();
+
+  showToast('✅ ' + fromToken.symbol + ' arrived on ' + CHAINS[toChain].name + '!');
   btn.disabled = false;
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
 
