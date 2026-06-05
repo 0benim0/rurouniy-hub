@@ -2175,7 +2175,7 @@ console.log('chain object:', JSON.stringify(chain));
   const allowance = await tokenContract.allowance(walletAddress, chain.bridgeAddress);
   console.log('allowance:', allowance.toString(), 'amountBN:', amountBN.toString());
   if(true) {
-    const approveTx = await tokenContract.approve(chain.bridgeAddress, amountBN);
+    const approveTx = await tokenContract.approve(chain.bridgeAddress, amountBN * 2n);
     await approveTx.wait();
   }
 
