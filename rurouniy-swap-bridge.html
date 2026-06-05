@@ -2241,6 +2241,12 @@ async function doCCTPBridge(amt, chain) {
   const mtContract = new ethers.Contract(messageTransmitter, MT_ABI, signer);
   const claimTx = await mtContract.receiveMessage(attestationData.message, attestationData.attestation);
   await claimTx.wait();
+  if(ryuContract) {
+    try {
+      const ryuTx = await ryuContract.earnFromBridge(walletAddress);
+      await ryuTx.wait();
+    } catch(e) {}
+  }
 
   showToast('✅ USDC arrived on ' + CHAINS[toChain].name + '!');
   btn.disabled = false;
