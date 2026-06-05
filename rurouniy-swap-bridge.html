@@ -2099,7 +2099,8 @@ async function doSwap(amt) {
     } else if(msg.includes('slippage')) {
       showToast('❌ Slippage too high — try smaller amount');
     } else if(msg.includes('network changed') || msg.includes('NE')) {
-      showToast('⚠️ Network changed — please stay on the same chain during swap');
+      if(currentMode === 'swap') showToast('⚠️ Network changed — please stay on the same chain during swap');
+      return;
     } else {
       showToast('Error: ' + msg.slice(0, 60));
     }
