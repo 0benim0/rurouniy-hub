@@ -2200,14 +2200,16 @@ async function doCCTPBridge(amt, chain) {
 
   btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Waiting attestation...';
   showToast('Step 3/3 — Waiting for Circle attestation...');
-  const burnReceipt = await burnTx.wait();
+  const txHash = burnTx.hash;
+  showToast('TX: ' + txHash.slice(0,20) + '...');
+  await burnTx.wait();
 
   // Poll Circle attestation API
   let attestationData = null;
   for(let i = 0; i < 60; i++) {
     await new Promise(r => setTimeout(r, 5000));
     try {
-      const res = await fetch(`https://iris-api-sandbox.circle.com/v2/messages/26?transactionHash=${burnReceipt.hash}`);
+      const res = await fetch(`https://iris-api-sandbox.circle.com/v2/messages/26?transactionHash=${txHash}`);
       const data = await res.json();
       if(data.messages?.[0]?.status === 'complete') {
         attestationData = data.messages[0];
