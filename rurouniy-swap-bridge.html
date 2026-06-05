@@ -2183,12 +2183,15 @@ async function doCCTPBridge(amt, chain) {
   showToast('Step 2/3 — Burning USDC on ARC...');
 
   const bridgeContract = new ethers.Contract(chain.bridgeAddress, BRIDGE_ABI, signer);
-  const tx = await bridgeContract.bridgeUSDCviaCCTP(
+console.log('calling bridge contract:', chain.bridgeAddress);
+console.log('destDomain:', destDomain);
+console.log('amountBN:', amountBN.toString());
+const tx = await bridgeContract.bridgeUSDCviaCCTP(
     amountBN,
     destDomain,
     walletAddress,
     usdcAddress
-  );
+);
 
   btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Circle Attestation...';
   showToast('Step 3/3 — Waiting for Circle attestation (~20 sec)...');
