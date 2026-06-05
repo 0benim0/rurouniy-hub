@@ -2137,7 +2137,9 @@ async function doSwap(amt) {
 
 async function doBridge(amt) {
   const chain = CHAINS[fromChain] || CHAINS[currentChain];
-  if(!chain.bridgeAddress) { showToast('Bridge contract not available'); return; }
+  const isCCTPSrc = fromChain === 'arc' || fromChain === 'ethereum_sepolia' || fromChain === 'base_sepolia';
+  const isCCTPDst = toChain === 'arc' || toChain === 'ethereum_sepolia' || toChain === 'base_sepolia';
+  if(!chain.bridgeAddress && !(isCCTPSrc && isCCTPDst)) { showToast('Bridge contract not available'); return; }
 
   // Warn if tokens are different
   if(fromToken.symbol !== toToken.symbol) {
