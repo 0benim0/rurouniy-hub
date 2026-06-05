@@ -2154,6 +2154,7 @@ async function doBridge(amt) {
 }
 
 async function doCCTPBridge(amt, chain) {
+console.log('chain object:', JSON.stringify(chain));
   const btn = document.getElementById('actionBtn');
   const usdcAddress = '0x3600000000000000000000000000000000000000';
   const destDomain = CCTP_DOMAINS[toChain] !== undefined ? CCTP_DOMAINS[toChain] : CCTP_DOMAINS.ethereum_sepolia;
