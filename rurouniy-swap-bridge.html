@@ -1711,10 +1711,16 @@ function renderChainList() {
   `).join('');
 }
 function selectChain(key) {
-  if(CHAINS[key].isBridgeOnly && currentChainTarget === 'from' && toChain !== 'arc') {
-    showToast('⚠️ ' + CHAINS[key].name + ' can only bridge to/from ARC!');
-    closeChainModal();
-    return;
+  if(CHAINS[key].isBridgeOnly && currentChainTarget === 'from') {
+    const validDest = toChain === 'arc' || toChain === 'ethereum_sepolia' || toChain === 'base_sepolia';
+    if(!validDest) {
+      toChain = 'arc';
+      const toChainTokens = getChainTokens('arc');
+      toToken = toChainTokens[0];
+      document.getElementById('toTokenIcon').textContent = toToken.icon;
+      document.getElementById('toTokenName').textContent = toToken.symbol;
+      document.getElementById('toTokenFull').textContent = toToken.name;
+    }
   }
   if(currentChainTarget === 'from') {
     fromChain = key;
