@@ -2157,38 +2157,36 @@ async function doCCTPBridge(amt, chain) {
   const btn = document.getElementById('actionBtn');
   const usdcAddress = '0x3600000000000000000000000000000000000000';
   const bridgingKit = '0xC5567a5E3370d4DBfB0540025078e283e36A363d';
+  const messageTransmitter = '0xe737e5cEBeebA77Efe34D4aA090756590b1Ce275';
   const destDomain = CCTP_DOMAINS[toChain] !== undefined ? CCTP_DOMAINS[toChain] : 0;
   const feeRecipient = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
 
   btn.innerHTML = '<span class="hourglass">⏳</span> Switching to ARC...';
   await switchToChain('arc');
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(r => setTimeout(r, 1500));
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
 
   const tokenContract = new ethers.Contract(usdcAddress, ERC20_ABI, signer);
   const decimals = await tokenContract.decimals();
   const amountBN = ethers.parseUnits(amt.toString(), decimals);
-  const feeBN = amountBN / 1000n; // 0.1% fee
+  const feeBN = amountBN / 1000n;
 
-  // Step 1 - Approve USDC für BridgingKit
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 1/2 — Approving USDC...';
-  showToast('Step 1/2 — Approving USDC...');
+  btn.innerHTML = '<span class="hourglass">⏳</span> Step 1/3 — Approving USDC...';
+  showToast('Step 1/3 — Approving USDC...');
   const approveTx = await tokenContract.approve(bridgingKit, amountBN + feeBN);
   await approveTx.wait();
 
-  // Step 2 - bridgeWithPreapproval aufrufen
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 2/2 — Bridging USDC...';
-  showToast('Step 2/2 — Bridging USDC...');
+  btn.innerHTML = '<span class="hourglass">⏳</span> Step 2/3 — Bridging USDC...';
+  showToast('Step 2/3 — Burning USDC on ARC...');
 
   const BRIDGING_KIT_ABI = [
     "function bridgeWithPreapproval((uint256 amount, uint256 maxFee, uint256 fee, bytes32 mintRecipient, bytes32 destinationCaller, address burnToken, address feeRecipient, uint32 destinationDomain, uint32 minFinalityThreshold) bridgeParams) external"
   ];
-
   const bridgingContract = new ethers.Contract(bridgingKit, BRIDGING_KIT_ABI, signer);
   const mintRecipient = ethers.zeroPadValue(walletAddress, 32);
 
-  const tx = await bridgingContract.bridgeWithPreapproval({
+  const burnTx = await bridgingContract.bridgeWithPreapproval({
     amount: amountBN,
     maxFee: amountBN / 10n,
     fee: feeBN,
@@ -2200,10 +2198,49 @@ async function doCCTPBridge(amt, chain) {
     minFinalityThreshold: 0
   });
 
-  showToast('Waiting for Circle attestation (~20 sec)...');
-  await tx.wait();
+  btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Waiting attestation...';
+  showToast('Step 3/3 — Waiting for Circle attestation...');
+  const burnReceipt = await burnTx.wait();
 
-  showToast('✅ Bridge initiated! USDC will arrive on ' + CHAINS[toChain].name + ' shortly.');
+  // Poll Circle attestation API
+  let attestationData = null;
+  for(let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 5000));
+    try {
+      const res = await fetch(`https://iris-api-sandbox.circle.com/v2/messages/26?transactionHash=${burnReceipt.hash}`);
+      const data = await res.json();
+      if(data.messages?.[0]?.status === 'complete') {
+        attestationData = data.messages[0];
+        break;
+      }
+    } catch(e) {}
+    btn.innerHTML = `<span class="hourglass">⏳</span> Attestation... (${i+1}/60)`;
+  }
+
+  if(!attestationData) {
+    showToast('⚠️ Attestation timeout — claim manually later!');
+    btn.disabled = false;
+    btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
+    return;
+  }
+
+  // Switch to destination chain
+  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to destination...';
+  await switchToChain(toChain);
+  await new Promise(r => setTimeout(r, 1500));
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
+
+  // Step 3 - receiveMessage on destination
+  showToast('Step 3/3 — Claiming USDC on ' + CHAINS[toChain].name + '...');
+  btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Claiming USDC...';
+
+  const MT_ABI = ["function receiveMessage(bytes calldata message, bytes calldata attestation) external returns (bool)"];
+  const mtContract = new ethers.Contract(messageTransmitter, MT_ABI, signer);
+  const claimTx = await mtContract.receiveMessage(attestationData.message, attestationData.attestation);
+  await claimTx.wait();
+
+  showToast('✅ USDC arrived on ' + CHAINS[toChain].name + '!');
   btn.disabled = false;
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
 
