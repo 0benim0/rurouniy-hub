@@ -2174,7 +2174,7 @@ console.log('chain object:', JSON.stringify(chain));
 
   const allowance = await tokenContract.allowance(walletAddress, chain.bridgeAddress);
   console.log('allowance:', allowance.toString(), 'amountBN:', amountBN.toString());
-  if(BigInt(allowance.toString()) < BigInt(amountBN.toString())) {
+  if(true) {
     const approveTx = await tokenContract.approve(chain.bridgeAddress, amountBN);
     await approveTx.wait();
   }
