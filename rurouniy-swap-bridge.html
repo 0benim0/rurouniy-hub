@@ -1901,11 +1901,13 @@ function updateActionBtn() {
       btn.innerHTML = `SWAP ${fromToken.symbol} → ${toToken.symbol}`;
       btn.disabled = false;
     }
-  } else {
+    } else {
     // BRIDGE MODE — use fromChain bridge contract
     const fromChainData = CHAINS[currentMode === 'bridge' ? fromChain : currentChain];
-    const isCCTPChain = (c) => c === 'arc' || c === 'ethereum_sepolia' || c === 'base_sepolia';
-    const bridgeOk = fromChainData && (fromChainData.bridgeAddress || isCCTPChain(fromChain));
+    const _fc = currentMode === 'bridge' ? fromChain : currentChain;
+    const _tc = currentMode === 'bridge' ? toChain : currentChain;
+    const isCCTPPair = (_fc === 'arc' || _fc === 'ethereum_sepolia' || _fc === 'base_sepolia') && (_tc === 'arc' || _tc === 'ethereum_sepolia' || _tc === 'base_sepolia');
+    const bridgeOk = fromChainData && (fromChainData.bridgeAddress || isCCTPPair);
     if(!bridgeOk) {
       btn.className = 'action-btn connect-btn';
       btn.innerHTML = '⚡ BRIDGE CONTRACT COMING SOON';
