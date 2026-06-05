@@ -2239,7 +2239,7 @@ async function doReverseCCTPBridge(amt) {
   showToast('Step 3/3 — Waiting for Circle attestation...');
 
   let attestationData = null;
-  for(let i = 0; i < 60; i++) {
+  for(let i = 0; i < 120; i++) {
     await new Promise(r => setTimeout(r, 5000));
     try {
       const res = await fetch(`https://iris-api-sandbox.circle.com/v2/messages/${sourceDomain}?transactionHash=${txHash}`);
