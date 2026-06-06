@@ -1014,7 +1014,7 @@ for(var i=0;i<18;i++){
   </div>
 
   <!-- RYU FAUCET CARD -->
-  <div class="swap-card" style="margin-top:16px;">
+  <div class="swap-card" id="faucetCard" style="margin-top:16px;"></div>
     <div class="card-header">
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:22px;">⚔</span>
@@ -1386,7 +1386,11 @@ async function loadRealBalances() {
 // ========== RYU FAUCET ==========
 function initRyuContract() {
   const chain = CHAINS[currentChain];
-  if(!chain.ryuAddress || !signer) return;
+  if(!chain.ryuAddress || !signer) {
+  document.getElementById('faucetCard').style.display = 'none';
+  return;
+}
+document.getElementById('faucetCard').style.display = 'block';
   ryuContract = new ethers.Contract(chain.ryuAddress, RYU_ABI, signer);
   const btn = document.getElementById('faucetClaimBtn');
   if(btn) { btn.textContent = '⌛ LOADING...'; btn.className = 'action-btn faucet-loading'; }
