@@ -1796,10 +1796,9 @@ function flipTokens() {
     document.getElementById('toTokenFull').textContent = toToken.name;
     loadRealBalances();
   }
-  const fromVal = document.getElementById('fromAmount').value;
-  const toVal = document.getElementById('toAmount').value;
-  document.getElementById('fromAmount').value = toVal;
-  document.getElementById('toAmount').value = fromVal;
+  
+  document.getElementById('toAmount').value = '';
+calcOutput();
 }
 
 // ========== CALC OUTPUT (mock rates) ==========
