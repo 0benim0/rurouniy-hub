@@ -1519,13 +1519,32 @@ function saveStats() {
     localStorage.setItem('ryuSwapTx', JSON.stringify(txLog.slice(0,20)));
   } catch(e) {}
 }
-function updateStatsDisplay() {
-  const s = document.getElementById('statSwaps');
-  const b = document.getElementById('statBridges');
-  const v = document.getElementById('statVolume');
-  if(s) s.textContent = stats.swaps;
-  if(b) b.textContent = stats.bridges;
-  if(v) v.textContent = '$' + stats.volume.toLocaleString();
+async function updateStatsDisplay() {
+  try {
+    const chain = CHAINS[currentChain];
+    const rpc = new ethers.JsonRpcProvider(chain.rpc);
+    
+    if(chain.swapAddress) {
+      const swapContract = new ethers.Contract(chain.swapAddress, 
+        ["function totalSwaps() view returns (uint256)"], rpc);
+      const swaps = await swapContract.totalSwaps();
+      const s = document.getElementById('statSwaps');
+      if(s) s.textContent = swaps.toString();
+    }
+    
+    if(chain.bridgeAddress) {
+      const bridgeContract = new ethers.Contract(chain.bridgeAddress,
+        ["function totalBridges() view returns (uint256)"], rpc);
+      const bridges = await bridgeContract.totalBridges();
+      const b = document.getElementById('statBridges');
+      if(b) b.textContent = bridges.toString();
+    }
+  } catch(e) {
+    const s = document.getElementById('statSwaps');
+    const b = document.getElementById('statBridges');
+    if(s) s.textContent = stats.swaps;
+    if(b) b.textContent = stats.bridges;
+  }
 }
 function renderTxLog() {
   const el = document.getElementById('txLog');
