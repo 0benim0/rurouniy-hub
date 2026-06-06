@@ -1583,13 +1583,7 @@ function setMode(mode) {
     fromChain = currentChain;
     toChain = currentChain;
     updateActionBtn();
-    Array.from(document.getElementById('chainSelectSB').options).forEach(opt => {
-  opt.style.display = opt.value === 'arc' ? '' : 'none';
-});
-if(currentChain !== 'arc') {
-  document.getElementById('chainSelectSB').value = 'arc';
-  currentChain = 'arc';
-}
+    
   } else {
     title.className = 'card-title bridge-mode';
     title.textContent = 'BRIDGE';
