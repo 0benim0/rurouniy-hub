@@ -1781,7 +1781,7 @@ function flipTokens() {
     document.getElementById('toTokenName').textContent = toToken.symbol;
     document.getElementById('toTokenFull').textContent = toToken.name;
     updateChainDisplay();
-    if(walletAddress) switchToChain(fromChain).finally(() => { isFlipping = false; });
+    isFlipping = false;
     else isFlipping = false;
     loadRealBalances();
   } else {
