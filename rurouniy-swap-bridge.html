@@ -1797,7 +1797,9 @@ function flipTokens() {
     loadRealBalances();
   }
   
-  document.getElementById('toAmount').value = '';
+  const oldToVal = document.getElementById('toAmount').value;
+document.getElementById('fromAmount').value = oldToVal;
+document.getElementById('toAmount').value = '';
 calcOutput();
 }
 
