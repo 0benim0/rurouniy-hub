@@ -1482,10 +1482,14 @@ async function claimFaucet() {
     } else {
       showToast('Error: ' + msg.slice(0,60));
     }
-    btn.disabled = false;
-    btn.style = '';
-    btn.textContent = '🎁 CLAIM 100 RYU';
-    btn.className = 'action-btn faucet-ready';
+    if(msg.includes('cooldown') || msg.includes('already')) {
+  loadFaucetStatus();
+} else {
+  btn.disabled = false;
+  btn.style = '';
+  btn.textContent = '🎁 CLAIM 100 RYU';
+  btn.className = 'action-btn faucet-ready';
+}
   }
 }
 
