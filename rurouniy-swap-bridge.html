@@ -1128,6 +1128,7 @@ const CHAINS = {
     swapAddress: '0xa26a06A3e04Ec174c07FB941C4eA1dBff405e9BF',
     bridgeAddress: '0xc2e8e8B0BF8D9c00735DD832A48E57654CC0F484',
     liquidityReady: false
+    isBridgeOnly: true,
   },
   arc: {
     name: 'ARC', chainId: '0x4cef52', chainIdDec: 5042002,
@@ -1152,6 +1153,7 @@ const CHAINS = {
     swapAddress: '0x2121C6c9EEfEA700831b16Ba5791a145599fb54B',
     bridgeAddress: '0x16b92c630065f3b84130b18Bdf12522e1Fd86D76',
     liquidityReady: false
+    isBridgeOnly: true,
   },
   ink: {
     name: 'INK Sepolia', chainId: '0xba5ed', chainIdDec: 763373,
@@ -1162,6 +1164,7 @@ const CHAINS = {
     swapAddress: '0xD08e9e13A17136DBD65b0ff97425239903Cd5E2F',
     bridgeAddress: '0x25832a57D698C9072C71aA735Be2D11A48e9a1A6',
     liquidityReady: false
+    isBridgeOnly: true,
   },
   ethereum_sepolia: {
     name: 'Ethereum Sepolia', chainId: '0xaa36a7', chainIdDec: 11155111,
@@ -1220,15 +1223,7 @@ const RYU_ABI = [
 // Chain-specific token addresses
 const CHAIN_TOKENS = {
   robinhood: [
-    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
-    { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
-    { symbol: 'WETH', name: 'Wrapped Ether',      icon: '🔷', decimals: 18, address: '0x7943e237c7F95DA44E0301572D358911207852Fa' },
-    { symbol: 'USDG', name: 'USD Gold',           icon: '💵', decimals: 6,  address: '0x7E955252E15c84f5768B83c41a71F9eba181802F' },
-    { symbol: 'TSLA', name: 'Tesla Stock',        icon: '🚗', decimals: 18, address: '0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E' },
-    { symbol: 'AMZN', name: 'Amazon Stock',       icon: '📦', decimals: 18, address: '0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02' },
-    { symbol: 'PLTR', name: 'Palantir Stock',     icon: '📊', decimals: 18, address: '0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0' },
-    { symbol: 'NFLX', name: 'Netflix Stock',      icon: '🎬', decimals: 18, address: '0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93' },
-    { symbol: 'AMD',  name: 'AMD Stock',          icon: '💻', decimals: 18, address: '0x71178BAc73cBeb415514eB542a8995b82669778d' },
+    { symbol: 'RYU', name: 'RurouniYu Token', icon: '⚔', decimals: 18, address: 'ryu' },
   ],
   arc: [
     { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x3600000000000000000000000000000000000000' },
@@ -1238,27 +1233,22 @@ const CHAIN_TOKENS = {
     
   ],
   giwa: [
-    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
-    { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
+    { symbol: 'RYU', name: 'RurouniYu Token', icon: '⚔', decimals: 18, address: 'ryu' },
   ],
   ink: [
-    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
-    { symbol: 'RYU',  name: 'RurouniYu Token',   icon: '⚔',  decimals: 18, address: 'ryu' },
-    { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac' },
+    { symbol: 'RYU', name: 'RurouniYu Token', icon: '⚔', decimals: 18, address: 'ryu' },
   ],
   ethereum_sepolia: [
-    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
-    { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' },
+    { symbol: 'USDC', name: 'USD Coin', icon: '💵', decimals: 6, address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' },
   ],
   base_sepolia: [
-    { symbol: 'ETH',  name: 'Ether',            icon: '💎', decimals: 18, address: 'native' },
-    { symbol: 'USDC', name: 'USD Coin',           icon: '💵', decimals: 6,  address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' },
+    { symbol: 'USDC', name: 'USD Coin', icon: '💵', decimals: 6, address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' },
   ],
 };
 
 // Get tokens for current chain
 function getChainTokens(chainKey) {
-  return CHAIN_TOKENS[chainKey] || CHAIN_TOKENS.robinhood;
+return CHAIN_TOKENS[chainKey] || CHAIN_TOKENS.arc;
 }
 
 const TOKENS = [
