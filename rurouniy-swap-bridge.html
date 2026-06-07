@@ -2591,7 +2591,9 @@ window.addEventListener('load', function() {
 
 // ========== CHAIN SWITCH ==========
 async function switchChainSB() {
-  const sel = document.getElementById('chainSelectSwap').value;
+  const sel = currentMode === 'bridge' 
+  ? document.getElementById('chainSelectBridge').value
+  : document.getElementById('chainSelectSwap').value;
   if(sel === currentChain) return;
   if(isBridging) { showToast('Please wait for bridge to complete'); document.getElementById('chainSelectSwap').value = currentChain; return; }
   if(isSwapping) { showToast('Please wait for swap to complete'); document.getElementById('chainSelectSwap').value = currentChain; return; }
