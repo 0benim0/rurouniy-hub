@@ -859,14 +859,20 @@ for(var i=0;i<18;i++){
   </div>
   <div class="header-right">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
-    <select id="chainSelectSB" onchange="switchChainSB()" style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">
-      <option value="robinhood">Robinhood</option>
-      <option value="arc">ARC</option>
-      <option value="giwa">GIWA</option>
-      <option value="ink">INK Sepolia</option>
-      <option value="ethereum_sepolia">Ethereum Sepolia</option>
-      <option value="base_sepolia">Base Sepolia</option>
-    </select>
+    <!-- Swap Dropdown: nur ARC -->
+<select id="chainSelectSwap" onchange="switchChainSB()" style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">
+  <option value="arc">ARC</option>
+</select>
+
+<!-- Bridge Dropdown: alle Chains -->
+<select id="chainSelectBridge" onchange="switchChainSB()" style="display:none;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">
+  <option value="arc">ARC</option>
+  <option value="robinhood">Robinhood</option>
+  <option value="giwa">GIWA</option>
+  <option value="ink">INK Sepolia</option>
+  <option value="ethereum_sepolia">Ethereum Sepolia</option>
+  <option value="base_sepolia">Base Sepolia</option>
+</select>
 
     <button class="wallet-btn" id="walletBtn" onclick="toggleWallet()">Connect Wallet</button>
   </div>
@@ -1583,6 +1589,8 @@ function setMode(mode) {
     fromChain = currentChain;
     toChain = currentChain;
     updateActionBtn();
+    document.getElementById('chainSelectSwap').style.display = '';
+    document.getElementById('chainSelectBridge').style.display = 'none';
     
   } else {
     title.className = 'card-title bridge-mode';
@@ -1601,9 +1609,9 @@ function setMode(mode) {
     }
     updateChainDisplay();
     updateActionBtn();
-    Array.from(document.getElementById('chainSelectSB').options).forEach(opt => {
-  opt.style.display = '';
-});
+    document.getElementById('chainSelectSwap').style.display = 'none';
+    document.getElementById('chainSelectBridge').style.display = '';
+    
   }
   calcOutput();
 }
@@ -1750,7 +1758,7 @@ function selectChain(key) {
     }
     // Sync header dropdown with fromChain
     currentChain = key;
-    document.getElementById('chainSelectSB').value = key;
+    document.getElementById('chainSelectSwap').value = key;
     // Only switch wallet chain if not currently bridging
     if(walletAddress && !isBridging) switchToChain(key);
   } else {
@@ -1766,7 +1774,7 @@ function selectChain(key) {
     if(toChain === fromChain) {
       fromChain = Object.keys(CHAINS).find(k => k !== key) || 'robinhood';
       currentChain = fromChain;
-      document.getElementById('chainSelectSB').value = fromChain;
+      document.getElementById('chainSelectBridge').value = fromChain;
     }
   }
   updateChainDisplay();
@@ -1790,7 +1798,7 @@ function flipTokens() {
     const oldToSymbol = toToken.symbol;
     [fromChain, toChain] = [toChain, fromChain];
     currentChain = fromChain;
-    document.getElementById('chainSelectSB').value = fromChain;
+    document.getElementById('chainSelectBridge').value = fromChain;
     const newFromTokens = getChainTokens(fromChain);
     const newToTokens = getChainTokens(toChain);
     fromToken = newFromTokens.find(t => t.symbol === oldToSymbol) || newFromTokens.find(t => t.symbol === 'RYU') || newFromTokens[0];
@@ -2013,7 +2021,7 @@ async function connectWallet() {
     if(matched) {
       // User is already on a supported chain
       currentChain = matched[0];
-      document.getElementById('chainSelectSB').value = matched[0];
+      document.getElementById('chainSelectBridge').value = matched[0];
       if(currentMode === 'bridge') fromChain = currentChain;
       showToast('Connected: ' + walletAddress.slice(0,6) + '...');
     } else {
@@ -2021,7 +2029,7 @@ async function connectWallet() {
       showToast('Wrong network! Switching to Robinhood Testnet...');
       await switchToChain('robinhood');
       currentChain = 'robinhood';
-      document.getElementById('chainSelectSB').value = 'robinhood';
+      document.getElementById('chainSelectSwap').value = 'robinhood';
     }
 
     updateActionBtn();
@@ -2550,7 +2558,7 @@ window.addEventListener('load', function() {
       const matched = Object.entries(CHAINS).find(([k,c]) => c.chainIdDec === parseInt(chainId, 16) || parseInt(c.chainId, 16) === parseInt(chainId, 16));
       if(matched) {
         currentChain = matched[0];
-        document.getElementById('chainSelectSB').value = matched[0];
+        document.getElementById('chainSelectBridge').value = matched[0];
 
         
         
@@ -2583,10 +2591,10 @@ window.addEventListener('load', function() {
 
 // ========== CHAIN SWITCH ==========
 async function switchChainSB() {
-  const sel = document.getElementById('chainSelectSB').value;
+  const sel = document.getElementById('chainSelectSwap').value;
   if(sel === currentChain) return;
-  if(isBridging) { showToast('Please wait for bridge to complete'); document.getElementById('chainSelectSB').value = currentChain; return; }
-  if(isSwapping) { showToast('Please wait for swap to complete'); document.getElementById('chainSelectSB').value = currentChain; return; }
+  if(isBridging) { showToast('Please wait for bridge to complete'); document.getElementById('chainSelectSwap').value = currentChain; return; }
+  if(isSwapping) { showToast('Please wait for swap to complete'); document.getElementById('chainSelectSwap').value = currentChain; return; }
   currentChain = sel;
   if(CHAINS[sel] && CHAINS[sel].isBridgeOnly && currentMode !== 'bridge') {
     setMode('bridge');
