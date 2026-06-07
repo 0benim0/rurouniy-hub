@@ -1584,11 +1584,15 @@ async function updateStatsDisplay() {
       const b = document.getElementById('statBridges');
       if(b) b.textContent = bridges.toString();
     }
+    const v = document.getElementById('statVolume');
+    if(v) v.textContent = '$' + stats.volume.toLocaleString();
   } catch(e) {
     const s = document.getElementById('statSwaps');
     const b = document.getElementById('statBridges');
+    const v = document.getElementById('statVolume');
     if(s) s.textContent = stats.swaps;
     if(b) b.textContent = stats.bridges;
+    if(v) v.textContent = '$' + stats.volume.toLocaleString();
   }
 }
 function renderTxLog() {
@@ -2175,6 +2179,7 @@ async function doSwap(amt) {
     await loadRyuBalance();
     await loadFaucetStatus();
     stats.swaps++;
+    stats.volume += parseFloat(amt) || 0;
     txLog.unshift({
       type: 'swap',
       label: `${amt} ${fromToken.symbol} → ${toToken.symbol}`,
@@ -2356,6 +2361,7 @@ const destMessageTransmitter = ethers.getAddress(CCTP_TRANSMITTERS[toChain]);
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
 
   stats.bridges++;
+  stats.volume += parseFloat(amt) || 0;
   txLog.unshift({
     type: 'bridge',
     label: `${amt} USDC — ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`,
@@ -2466,6 +2472,7 @@ async function doCCTPBridge(amt, chain) {
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
 
   stats.bridges++;
+  stats.volume += parseFloat(amt) || 0;
   txLog.unshift({
     type: 'bridge',
     label: `${amt} USDC — ARC → ${CHAINS[toChain].name}`,
@@ -2549,6 +2556,7 @@ async function doLockMintBridge(amt, chain) {
 
   // Update stats
   stats.bridges++;
+  stats.volume += parseFloat(amt) || 0;
   txLog.unshift({
     type: 'bridge',
     label: `${amt} ${fromToken.symbol} — ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`,
