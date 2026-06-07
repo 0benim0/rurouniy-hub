@@ -2231,7 +2231,7 @@ async function doReverseCCTPBridge(amt) {
   ethereum_sepolia: '0x7865fAfC2db2093669d92c0197e5d6f4Fefbe31f',
   base_sepolia:     '0x7865fAfC2db2093669d92c0197e5d6f4Fefbe31f'
 };
-const destMessageTransmitter = CCTP_TRANSMITTERS[toChain];
+const destMessageTransmitter = ethers.getAddress(CCTP_TRANSMITTERS[toChain]);
 
   btn.innerHTML = '<span class="hourglass">⏳</span> Switching to ' + sourceChain.name + '...';
   await switchToChain(fromChain);
