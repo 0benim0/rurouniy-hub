@@ -599,7 +599,7 @@ main {
 @keyframes statShimmer { 0%{left:-100%} 100%{left:200%} }
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
+  grid-template-columns: repeat(3, minmax(0,1fr));
   gap: 10px;
   margin-top: 20px;
   width: 100%;
@@ -1046,12 +1046,7 @@ for(var i=0;i<18;i++){
     <div class="stat-mini-value" id="statBridges">0</div>
     <div class="stat-mini-sub"><span class="stat-mini-dot"></span>on-chain</div>
   </div>
-  <div class="stat-mini s-amber">
-    <span class="stat-mini-icon">📊</span>
-    <div class="stat-mini-label">Volume</div>
-    <div class="stat-mini-value" id="statVolume">$0</div>
-    <div class="stat-mini-sub"><span class="stat-mini-dot"></span>all time</div>
-  </div>
+  
   <div class="stat-mini s-teal">
     <span class="stat-mini-icon">⚔</span>
     <div class="stat-mini-label">RYU Balance</div>
@@ -1575,6 +1570,9 @@ async function updateStatsDisplay() {
       const swaps = await swapContract.totalSwaps();
       const s = document.getElementById('statSwaps');
       if(s) s.textContent = swaps.toString();
+    } else {
+      const s = document.getElementById('statSwaps');
+      if(s) s.textContent = '—';
     }
     
     if(chain.bridgeAddress) {
@@ -1583,6 +1581,9 @@ async function updateStatsDisplay() {
       const bridges = await bridgeContract.totalBridges();
       const b = document.getElementById('statBridges');
       if(b) b.textContent = bridges.toString();
+    } else {
+      const b = document.getElementById('statBridges');
+      if(b) b.textContent = '—';
     }
     const v = document.getElementById('statVolume');
     if(v) v.textContent = '$' + stats.volume.toLocaleString();
