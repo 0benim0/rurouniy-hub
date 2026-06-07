@@ -2070,7 +2070,7 @@ async function connectWallet() {
       // User is already on a supported chain
       currentChain = matched[0];
       document.getElementById('chainSelectBridge').value = matched[0];
-      if(currentMode === 'bridge') fromChain = currentChain;
+      if(currentMode === 'bridge' && !isBridging) fromChain = currentChain;
       showToast('Connected: ' + walletAddress.slice(0,6) + '...');
     } else {
       // User is on wrong chain (e.g. ETH Mainnet) — switch to Robinhood
@@ -2629,7 +2629,7 @@ window.addEventListener('load', function() {
           document.getElementById('fromAmount').value = '';
           document.getElementById('toAmount').value = '';
         }
-        if(currentMode === 'bridge') fromChain = currentChain;
+        if(currentMode === 'bridge' && !isBridging) fromChain = currentChain;
         updateActionBtn();
         calcOutput();
         showToast('Switched to ' + matched[1].name);
