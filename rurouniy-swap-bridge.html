@@ -31,7 +31,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  background: #f4f6f9;
+  background: linear-gradient(135deg, #ede9ff 0%, #fdf6ff 40%, #e8f5f0 100%);
   color: #0f1419;
   font-family: 'Space Mono', monospace;
   min-height: 100vh;
@@ -95,7 +95,7 @@ body::before {
 /* HEADER */
 header {
   position: fixed; top: 24px; left: 0; right: 0; z-index: 200;
-  background: rgba(255,255,255,0.97);
+  background: linear-gradient(135deg, rgba(255,255,255,0.97), rgba(240,235,255,0.97));
   backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border2);
   height: 60px;
@@ -264,8 +264,9 @@ main {
 
 /* TOKEN BOX */
 .token-box {
-  background: var(--surface2);
+  background: linear-gradient(135deg, #f0ebff, #ebf5ff);
   border: 1px solid var(--border2);
+  border-left: 3px solid #0066cc;
   border-radius: 14px;
   padding: 16px;
   transition: all 0.2s;
@@ -425,7 +426,8 @@ main {
   color: #6b7280;
 }
 .route-row span:last-child { color: #111827; font-weight: 500; }
-.route-row.highlight span:last-child { color: #059669; font-weight: 700; }
+.route-row.highlight span:last-child { color: #059669; font-weight: 700; font-size: 15px; }
+.route-row.highlight span:first-child { font-weight: 700; color: #374151; }
 
 /* SLIPPAGE */
 .slippage-row {
@@ -465,9 +467,14 @@ main {
   overflow: hidden;
 }
 .action-btn.swap-btn {
-  background: linear-gradient(135deg, #0066cc, #0052a3);
+  background: linear-gradient(135deg, #0066cc, #7c3aed, #0066cc);
+  background-size: 200%;
   color: #fff;
-  animation: btnPulseGlow 3s ease-in-out infinite;
+  animation: btnPulseGlow 3s ease-in-out infinite, btnGradientMove 4s linear infinite;
+}
+@keyframes btnGradientMove {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
 @keyframes btnPulseGlow {
   0%,100% { box-shadow: 0 4px 20px rgba(0,102,204,0.3); }
@@ -669,7 +676,7 @@ main {
 .stat-mini.s-teal::before { background:#1D9E75; }
 .stat-mini-icon { font-size:20px; margin-bottom:6px; display:block; }
 .stat-mini-label { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; font-weight:700; }
-.stat-mini-value { font-family:'Orbitron',sans-serif; font-weight:900; font-size:22px; letter-spacing:1px; }
+.stat-mini-value { font-family:'Orbitron',sans-serif; font-weight:900; font-size:26px; letter-spacing:1px; }
 .stat-mini.s-blue .stat-mini-value { color:#0066cc; }
 .stat-mini.s-purple .stat-mini-value { color:#7F77DD; }
 .stat-mini.s-amber .stat-mini-value { color:#BA7517; }
