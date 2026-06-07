@@ -594,24 +594,53 @@ main {
 .cli-check { color: var(--accent2); font-size: 14px; }
 
 /* STATS ROW */
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes statPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+@keyframes statShimmer { 0%{left:-100%} 100%{left:200%} }
 .stats-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
   gap: 10px;
   margin-top: 20px;
   width: 100%;
   max-width: 480px;
 }
 .stat-mini {
-  flex: 1;
+  position: relative; overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border2);
-  border-radius: 12px;
-  padding: 14px 12px;
+  border-radius: 14px;
+  padding: 16px 12px 14px;
   text-align: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  opacity: 0;
+  animation: fadeUp 0.5s ease forwards;
+  transition: transform 0.2s, border-color 0.2s;
+  cursor: default;
 }
-.stat-mini-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; font-weight: 700; }
-.stat-mini-value { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: #0066cc; }
+.stat-mini:hover { transform: translateY(-3px); border-color: var(--border3); }
+.stat-mini:nth-child(1){animation-delay:0.05s}
+.stat-mini:nth-child(2){animation-delay:0.15s}
+.stat-mini:nth-child(3){animation-delay:0.25s}
+.stat-mini:nth-child(4){animation-delay:0.35s}
+.stat-mini::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:14px 14px 0 0; }
+.stat-mini::after { content:''; position:absolute; top:0; width:40%; height:100%; background:rgba(255,255,255,0.06); transform:skewX(-20deg); animation: statShimmer 3s ease infinite; }
+.stat-mini.s-blue::before { background:#0066cc; }
+.stat-mini.s-purple::before { background:#7F77DD; }
+.stat-mini.s-amber::before { background:#BA7517; }
+.stat-mini.s-teal::before { background:#1D9E75; }
+.stat-mini-icon { font-size:20px; margin-bottom:6px; display:block; }
+.stat-mini-label { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; font-weight:700; }
+.stat-mini-value { font-family:'Orbitron',sans-serif; font-weight:900; font-size:22px; letter-spacing:1px; }
+.stat-mini.s-blue .stat-mini-value { color:#0066cc; }
+.stat-mini.s-purple .stat-mini-value { color:#7F77DD; }
+.stat-mini.s-amber .stat-mini-value { color:#BA7517; }
+.stat-mini.s-teal .stat-mini-value { color:#1D9E75; font-size:14px; }
+.stat-mini-dot { display:inline-block; width:5px; height:5px; border-radius:50%; margin-right:4px; vertical-align:middle; animation: statPulse 2s ease-in-out infinite; }
+.stat-mini.s-blue .stat-mini-dot { background:#0066cc; }
+.stat-mini.s-purple .stat-mini-dot { background:#7F77DD; }
+.stat-mini.s-amber .stat-mini-dot { background:#BA7517; }
+.stat-mini.s-teal .stat-mini-dot { background:#1D9E75; }
+.stat-mini-sub { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); margin-top:5px; letter-spacing:1px; }
 
 /* TX LOG */
 .tx-log-wrap {
@@ -1004,23 +1033,35 @@ for(var i=0;i<18;i++){
   </div>
 
   <!-- STATS -->
-  <div class="stats-row">
-    <div class="stat-mini">
-      <div class="stat-mini-label">Total Swaps</div>
-      <div class="stat-mini-value" id="statSwaps">0</div>
-    </div>
-    <div class="stat-mini">
-      <div class="stat-mini-label">Total Bridges</div>
-      <div class="stat-mini-value" id="statBridges">0</div>
-    </div>
-    <div class="stat-mini">
-      <div class="stat-mini-label">RYU Balance</div>
-      <div class="stat-mini-value" style="font-size:12px;color:var(--accent4);" id="ryuBalance">—</div>
-    </div>
+<div class="stats-row">
+  <div class="stat-mini s-blue">
+    <span class="stat-mini-icon">⇄</span>
+    <div class="stat-mini-label">Total Swaps</div>
+    <div class="stat-mini-value" id="statSwaps">0</div>
+    <div class="stat-mini-sub"><span class="stat-mini-dot"></span>on-chain</div>
   </div>
+  <div class="stat-mini s-purple">
+    <span class="stat-mini-icon">⬡</span>
+    <div class="stat-mini-label">Total Bridges</div>
+    <div class="stat-mini-value" id="statBridges">0</div>
+    <div class="stat-mini-sub"><span class="stat-mini-dot"></span>on-chain</div>
+  </div>
+  <div class="stat-mini s-amber">
+    <span class="stat-mini-icon">📊</span>
+    <div class="stat-mini-label">Volume</div>
+    <div class="stat-mini-value" id="statVolume">$0</div>
+    <div class="stat-mini-sub"><span class="stat-mini-dot"></span>all time</div>
+  </div>
+  <div class="stat-mini s-teal">
+    <span class="stat-mini-icon">⚔</span>
+    <div class="stat-mini-label">RYU Balance</div>
+    <div class="stat-mini-value" id="ryuBalance">—</div>
+    <div class="stat-mini-sub"><span class="stat-mini-dot"></span>your wallet</div>
+  </div>
+</div>
 
   <!-- RYU FAUCET CARD -->
-  <div class="swap-card" id="faucetCard" style="margin-top:16px;"></div>
+  <div class="swap-card" id="faucetCard" style="margin-top:16px;">
     <div class="card-header">
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:22px;">⚔</span>
