@@ -2493,6 +2493,11 @@ async function doCCTPBridge(amt, chain) {
 
 async function doLockMintBridge(amt, chain) {
   const btn = document.getElementById('actionBtn');
+  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to ' + CHAINS[fromChain].name + '...';
+await switchToChain(fromChain);
+await new Promise(r => setTimeout(r, 1500));
+provider = new ethers.BrowserProvider(window.ethereum);
+signer = await provider.getSigner();
   const destChainId = CHAINS[toChain].chainIdDec;
 
   const bridgeContract = new ethers.Contract(chain.bridgeAddress, BRIDGE_ABI, signer);
