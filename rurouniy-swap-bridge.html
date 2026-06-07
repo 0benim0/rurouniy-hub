@@ -2532,28 +2532,12 @@ async function doLockMintBridge(amt, chain) {
     await tx.wait();
   }
 
-  // Step 3 - Switch to destination and mint
-  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to destination...';
-  showToast('Switching to ' + CHAINS[toChain].name + '...');
-  await switchToChain(toChain);
-  await new Promise(r => setTimeout(r, 1500));
-  provider = new ethers.BrowserProvider(window.ethereum);
-  signer = await provider.getSigner();
-
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Minting tokens...';
-  showToast('Step 3/3 — Minting ' + fromToken.symbol + ' on ' + CHAINS[toChain].name + '...');
-
-  const MINT_ABI = ["function mintTokens(address user, address token, uint256 amount, uint256 sourceChainId, uint256 nonce) external"];
-  const destChain = CHAINS[toChain];
-  const destBridgeContract = new ethers.Contract(destChain.bridgeAddress, MINT_ABI, signer);
-  const tokenAddr2 = fromToken.address === 'ryu' ? destChain.ryuAddress : fromToken.address;
-  const nonce = Date.now();
-  const mintTx = await destBridgeContract.mintTokens(walletAddress, tokenAddr2, ethers.parseUnits(amt.toString(), fromToken.decimals), CHAINS[fromChain].chainIdDec, nonce);
-  await mintTx.wait();
-
-  showToast('✅ ' + fromToken.symbol + ' arrived on ' + CHAINS[toChain].name + '!');
+  // Relayer wird automatisch auf Zielchain minten
+  showToast('✅ Locked! Relayer mintet auf ' + CHAINS[toChain].name + ' in ~30 Sek...');
   btn.disabled = false;
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
+
+  
 
   // Update stats
   stats.bridges++;
