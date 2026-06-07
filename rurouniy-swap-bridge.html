@@ -1148,7 +1148,7 @@ const CHAINS = {
     cctpMessenger: '0x8fe6b999dc680ccfdd5bf7eb0974218be2542daa',
     cctpDomain: 26,
     usdcAddress: '0x3600000000000000000000000000000000000000',
-    messageTransmitter: '0xe737e5cebeeba77efe34d4aa090756590b1ce275'
+    messageTransmitter: '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275'
   },
   giwa: {
     name: 'GIWA', chainId: '0x164ce', chainIdDec: 91342,
@@ -2227,9 +2227,9 @@ async function doReverseCCTPBridge(amt) {
   
   const destDomain = CHAINS[toChain].cctpDomain;
   const CCTP_TRANSMITTERS = {
-  arc:              '0xe737e5cebeeba77efe34d4aa090756590b1ce275',
-  ethereum_sepolia: '0x7865fAfC2db2093669d92c0197e5d6f4Fefbe31f',
-  base_sepolia:     '0x7865fAfC2db2093669d92c0197e5d6f4Fefbe31f'
+  arc:              '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275',
+  ethereum_sepolia: '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275',
+  base_sepolia:     '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275'
 };
 const destMessageTransmitter = ethers.getAddress(CCTP_TRANSMITTERS[toChain]);
 
@@ -2331,7 +2331,7 @@ async function doCCTPBridge(amt, chain) {
   const btn = document.getElementById('actionBtn');
   const usdcAddress = '0x3600000000000000000000000000000000000000';
   const bridgingKit = '0xC5567a5E3370d4DBfB0540025078e283e36A363d';
-  const messageTransmitter = ethers.getAddress('0xe737e5cebeeba77efe34d4aa090756590b1ce275');
+  const messageTransmitter = ethers.getAddress('0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275');
   const destDomain = CCTP_DOMAINS[toChain] !== undefined ? CCTP_DOMAINS[toChain] : 0;
   const feeRecipient = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
 
