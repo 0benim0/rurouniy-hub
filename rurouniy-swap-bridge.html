@@ -1637,6 +1637,7 @@ function setMode(mode) {
     updateActionBtn();
     document.getElementById('chainSelectSwap').style.display = '';
     document.getElementById('chainSelectBridge').style.display = 'none';
+    document.getElementById('faucetCard').style.display = 'block';
     
   } else {
     title.className = 'card-title bridge-mode';
@@ -1657,6 +1658,7 @@ function setMode(mode) {
     updateActionBtn();
     document.getElementById('chainSelectSwap').style.display = 'none';
     document.getElementById('chainSelectBridge').style.display = '';
+    document.getElementById('faucetCard').style.display = 'none';
     
   }
   calcOutput();
