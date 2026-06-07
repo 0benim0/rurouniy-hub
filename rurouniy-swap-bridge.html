@@ -1561,39 +1561,41 @@ function saveStats() {
 }
 async function updateStatsDisplay() {
   try {
-    const chain = CHAINS[currentChain];
-    const rpc = new ethers.JsonRpcProvider(chain.rpc);
-    
-    if(chain.swapAddress) {
-      const swapContract = new ethers.Contract(chain.swapAddress, 
-        ["function totalSwaps() view returns (uint256)"], rpc);
-      const swaps = await swapContract.totalSwaps();
-      const s = document.getElementById('statSwaps');
-      if(s) s.textContent = swaps.toString();
-    } else {
-      const s = document.getElementById('statSwaps');
-      if(s) s.textContent = '—';
+    let totalSwaps = 0;
+    let totalBridges = 0;
+
+    for(const [key, chain] of Object.entries(CHAINS)) {
+      try {
+        const rpc = new ethers.JsonRpcProvider(chain.rpc);
+        
+        if(chain.swapAddress) {
+          const swaps = await Promise.race([
+            new ethers.Contract(chain.swapAddress, ["function totalSwaps() view returns (uint256)"], rpc).totalSwaps(),
+            new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 5000))
+          ]);
+          totalSwaps += Number(swaps);
+        }
+
+        if(chain.bridgeAddress) {
+          const bridges = await Promise.race([
+            new ethers.Contract(chain.bridgeAddress, ["function totalBridges() view returns (uint256)"], rpc).totalBridges(),
+            new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 5000))
+          ]);
+          totalBridges += Number(bridges);
+        }
+      } catch(e) {}
     }
-    
-    if(chain.bridgeAddress) {
-      const bridgeContract = new ethers.Contract(chain.bridgeAddress,
-        ["function totalBridges() view returns (uint256)"], rpc);
-      const bridges = await bridgeContract.totalBridges();
-      const b = document.getElementById('statBridges');
-      if(b) b.textContent = bridges.toString();
-    } else {
-      const b = document.getElementById('statBridges');
-      if(b) b.textContent = '—';
-    }
-    const v = document.getElementById('statVolume');
-    if(v) v.textContent = '$' + stats.volume.toLocaleString();
+
+    const s = document.getElementById('statSwaps');
+    const b = document.getElementById('statBridges');
+    if(s) s.textContent = totalSwaps.toString();
+    if(b) b.textContent = totalBridges.toString();
+
   } catch(e) {
     const s = document.getElementById('statSwaps');
     const b = document.getElementById('statBridges');
-    const v = document.getElementById('statVolume');
-    if(s) s.textContent = stats.swaps;
-    if(b) b.textContent = stats.bridges;
-    if(v) v.textContent = '$' + stats.volume.toLocaleString();
+    if(s) s.textContent = '—';
+    if(b) b.textContent = '—';
   }
 }
 function renderTxLog() {
