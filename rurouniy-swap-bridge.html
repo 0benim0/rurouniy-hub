@@ -1417,7 +1417,7 @@ async function loadRealBalances() {
 
 // ========== RYU FAUCET ==========
 function initRyuContract() {
-  const chain = CHAINS[currentChain];
+  const chain = CHAINS['arc'];
   if(!chain.ryuAddress || !signer) {
   document.getElementById('faucetCard').style.display = 'none';
   return;
