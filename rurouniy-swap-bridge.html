@@ -1025,14 +1025,11 @@ for(var i=0;i<18;i++){
           </div>
           <div class="token-chevron">▼</div>
         </button>
-        <div class="token-amount-wrap" style="display:flex;align-items:center;">
+        <div class="token-amount-wrap" 
           <input type="number" class="token-input" id="fromAmount" placeholder="0.00" min="0" step="any" oninput="calcOutput()"
   onfocus="document.getElementById('fromBox').classList.add('focused')"
   onblur="document.getElementById('fromBox').classList.remove('focused')">
-  <div class="spin-wrap">
-  <button class="spin-btn" onclick="stepInput('fromAmount',0.1)">+</button>
-  <button class="spin-btn" onclick="stepInput('fromAmount',-0.1)">−</button>
-</div>
+  
           <div class="token-usd" id="fromUsd">≈ $0.00</div>
           <div class="token-balance">
             Balance: <span id="fromBalance">—</span>
