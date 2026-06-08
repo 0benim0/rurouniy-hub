@@ -362,6 +362,12 @@ main {
   padding: 0 24px 0 0;
 }
 .token-input::placeholder { color: #9ca3af; }
+.token-input::-webkit-inner-spin-button,
+.token-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.token-input[type=number] { -moz-appearance: textfield; }
+.spin-btn { width: 22px; height: 18px; background: rgba(108,63,200,0.1); border: 1px solid rgba(108,63,200,0.25); border-radius: 4px; color: #6c3fc8; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; line-height: 1; padding: 0; }
+.spin-btn:hover { background: rgba(108,63,200,0.28); }
+.spin-wrap { display: flex; flex-direction: column; gap: 3px; margin-left: 6px; }
 .token-usd {
   font-size: 12px;
   color: #6b7280;
@@ -1019,10 +1025,14 @@ for(var i=0;i<18;i++){
           </div>
           <div class="token-chevron">▼</div>
         </button>
-        <div class="token-amount-wrap">
+        <div class="token-amount-wrap" style="display:flex;align-items:center;">
           <input type="number" class="token-input" id="fromAmount" placeholder="0.00" min="0" step="any" oninput="calcOutput()"
   onfocus="document.getElementById('fromBox').classList.add('focused')"
   onblur="document.getElementById('fromBox').classList.remove('focused')">
+  <div class="spin-wrap">
+  <button class="spin-btn" onclick="stepInput('fromAmount',0.1)">+</button>
+  <button class="spin-btn" onclick="stepInput('fromAmount',-0.1)">−</button>
+</div>
           <div class="token-usd" id="fromUsd">≈ $0.00</div>
           <div class="token-balance">
             Balance: <span id="fromBalance">—</span>
@@ -2758,7 +2768,12 @@ async function switchChainSB() {
   calcOutput();
   if(walletAddress) await switchToChain(sel);
 }
-
+function stepInput(id, step) {
+  const el = document.getElementById(id);
+  const val = parseFloat(el.value) || 0;
+  el.value = Math.max(0, val + step).toFixed(6);
+  calcOutput();
+}
 // ========== THEME TOGGLE ==========
 function toggleTheme() {
   const html = document.documentElement;
