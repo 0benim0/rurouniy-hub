@@ -1694,9 +1694,20 @@ function setMode(mode) {
     document.getElementById('fromChainRow').style.display = 'none';
     document.getElementById('toChainRow').style.display = 'none';
     bridgeTimeRow.style.display = 'none';
-    // Sync chains to current
-    fromChain = currentChain;
-    toChain = currentChain;
+    currentChain = 'arc';
+    fromChain = 'arc';
+    toChain = 'arc';
+    document.getElementById('chainSelectSwap').value = 'arc';
+    const arcTokens = getChainTokens('arc');
+    fromToken = arcTokens[0];
+    toToken = arcTokens[1] || arcTokens[0];
+    document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+    document.getElementById('fromTokenName').textContent = fromToken.symbol;
+    document.getElementById('fromTokenFull').textContent = fromToken.name;
+    document.getElementById('toTokenIcon').textContent = toToken.icon;
+    document.getElementById('toTokenName').textContent = toToken.symbol;
+    document.getElementById('toTokenFull').textContent = toToken.name;
+    if(walletAddress) switchToChain('arc');
     updateActionBtn();
     document.getElementById('chainSelectSwap').style.display = '';
     document.getElementById('chainSelectBridge').style.display = 'none';
