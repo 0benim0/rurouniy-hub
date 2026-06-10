@@ -2156,6 +2156,21 @@ async function connectWallet() {
 
     updateActionBtn();
     initRyuContract();
+    // If swap mode, always switch to ARC
+    if(currentMode === 'swap') {
+      currentChain = 'arc';
+      document.getElementById('chainSelectSwap').value = 'arc';
+      const arcTokens = getChainTokens('arc');
+      fromToken = arcTokens[0];
+      toToken = arcTokens[1] || arcTokens[0];
+      document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+      document.getElementById('fromTokenName').textContent = fromToken.symbol;
+      document.getElementById('fromTokenFull').textContent = fromToken.name;
+      document.getElementById('toTokenIcon').textContent = toToken.icon;
+      document.getElementById('toTokenName').textContent = toToken.symbol;
+      document.getElementById('toTokenFull').textContent = toToken.name;
+      await switchToChain('arc');
+    }
 
   } catch(e) {
     showToast('Error: ' + (e.message || 'Connection failed').slice(0,60));
