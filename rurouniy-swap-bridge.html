@@ -914,6 +914,114 @@ main {
   line-height: 1;
 }
 .theme-toggle:hover { border-color: #0066cc; }
+/* BRIDGE PROGRESS OVERLAY */
+.bridge-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  border-radius: 20px;
+  z-index: 10;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.bridge-overlay.active { display: flex; }
+.bridge-progress-panel {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 18px;
+  width: 100%;
+}
+.bridge-progress-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.bridge-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  border: 1px solid transparent;
+  transition: all 0.3s;
+}
+.bridge-step.done {
+  background: rgba(0,168,107,0.08);
+  border-color: rgba(0,168,107,0.25);
+}
+.bridge-step.active {
+  background: rgba(0,102,204,0.08);
+  border-color: rgba(0,102,204,0.4);
+  border-width: 1.5px;
+}
+.bridge-step.pending {
+  background: rgba(107,127,153,0.06);
+  border-color: rgba(107,127,153,0.15);
+  opacity: 0.5;
+}
+[data-theme="dark"] .bridge-step.done {
+  background: rgba(79,255,176,0.08);
+  border-color: rgba(79,255,176,0.25);
+}
+[data-theme="dark"] .bridge-step.active {
+  background: rgba(0,217,255,0.08);
+  border-color: rgba(0,217,255,0.4);
+}
+.bridge-step-icon {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.bridge-step.done .bridge-step-icon { color: var(--accent2); font-size: 16px; }
+.bridge-step.active .bridge-step-icon {
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+.bridge-step.pending .bridge-step-icon {
+  border: 1.5px solid var(--muted);
+  color: var(--muted);
+  font-size: 11px;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+}
+.bridge-step-text { flex: 1; }
+.bridge-step-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.bridge-step.done .bridge-step-title { color: var(--accent2); }
+.bridge-step.active .bridge-step-title { color: var(--accent); }
+.bridge-step.pending .bridge-step-title { color: var(--muted); }
+.bridge-step-sub {
+  font-size: 10px;
+  opacity: 0.75;
+}
+.bridge-step.done .bridge-step-sub { color: var(--accent2); }
+.bridge-step.active .bridge-step-sub { color: var(--accent); }
+.bridge-step.pending .bridge-step-sub { color: var(--muted); }
+.bridge-progress-info {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
 </style>
 </head>
 <body>
@@ -1080,9 +1188,17 @@ for(var i=0;i<18;i++){
       <div class="route-row highlight"><span>You Receive</span><span id="routeReceive">—</span></div>
       <div class="route-row" id="bridgeTimeRow" style="display:none;"><span>Est. Bridge Time</span><span id="routeBridgeTime">~2-5 min</span></div>
     </div>
+     <!-- BRIDGE PROGRESS OVERLAY -->
+    <div class="bridge-overlay" id="bridgeOverlay">
+      <div class="bridge-progress-panel">
+        <div class="bridge-progress-title" id="bridgeProgressTitle">BRIDGE IN PROGRESS</div>
+        <div id="bridgeStepsContainer"></div>
+        <div class="bridge-progress-info" id="bridgeProgressInfo">⏳ Bitte warten...</div>
+      </div>
+    </div>
 
     <!-- ACTION BUTTON -->
-    <button class="action-btn connect-btn" id="actionBtn" onclick="doAction()">
+     <button class="action-btn connect-btn" id="actionBtn" onclick="doAction()">
       CONNECT WALLET
     </button>
 
@@ -1618,6 +1734,46 @@ function showBridgeOnlyBanner(chainName, icon) {
   }, 6000);
 }
 function showToast(msg) {
+// ========== BRIDGE PROGRESS OVERLAY ==========
+const STEPS_CCTP = [
+  { title: 'Schritt 1/4 — Approve',           sub: 'USDC genehmigen' },
+  { title: 'Schritt 2/4 — USDC verbrennen',   sub: 'Transaktion bestätigen' },
+  { title: 'Schritt 3/4 — Circle Attestation',sub: 'Warte auf Circle...' },
+  { title: 'Schritt 4/4 — USDC claimen',      sub: 'Auf Zielchain bestätigen' },
+];
+const STEPS_RYU = [
+  { title: 'Schritt 1/3 — Approve',           sub: 'Token genehmigen' },
+  { title: 'Schritt 2/3 — Token locken',      sub: 'Transaktion bestätigen' },
+  { title: 'Schritt 3/3 — Token minting',     sub: 'Auf Zielchain bestätigen' },
+];
+
+function showBridgeOverlay(steps, fromName, toName) {
+  document.getElementById('bridgeProgressTitle').textContent =
+    (fromName + ' → ' + toName).toUpperCase();
+  renderBridgeSteps(steps, -1);
+  document.getElementById('bridgeOverlay').classList.add('active');
+}
+function hideBridgeOverlay() {
+  document.getElementById('bridgeOverlay').classList.remove('active');
+}
+function renderBridgeSteps(steps, activeIdx) {
+  document.getElementById('bridgeStepsContainer').innerHTML = steps.map((s, i) => {
+    const state = i < activeIdx ? 'done' : i === activeIdx ? 'active' : 'pending';
+    const icon = state === 'done' ? '✓' : state === 'active' ? '' : String(i+1);
+    return `
+      <div class="bridge-step ${state}">
+        <div class="bridge-step-icon">${icon}</div>
+        <div class="bridge-step-text">
+          <div class="bridge-step-title">${s.title}</div>
+          <div class="bridge-step-sub">${s.sub}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+function setBridgeStep(steps, activeIdx, infoText) {
+  renderBridgeSteps(steps, activeIdx);
+  if(infoText) document.getElementById('bridgeProgressInfo').textContent = infoText;
+}
   const t = document.getElementById('toast');
   if(!t) return;
   t.textContent = msg; t.classList.add('show');
@@ -2382,16 +2538,18 @@ async function doReverseCCTPBridge(amt) {
   const usdcAddress = sourceChain.usdcAddress;
   const tokenMessenger = sourceChain.cctpMessenger;
   const sourceDomain = sourceChain.cctpDomain;
-  
   const destDomain = CHAINS[toChain].cctpDomain;
   const CCTP_TRANSMITTERS = {
-  arc:              '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275',
-  ethereum_sepolia: '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275',
-  base_sepolia:     '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275'
-};
-const destMessageTransmitter = ethers.getAddress(CCTP_TRANSMITTERS[toChain]);
+    arc:              '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275',
+    ethereum_sepolia: '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275',
+    base_sepolia:     '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275'
+  };
+  const destMessageTransmitter = ethers.getAddress(CCTP_TRANSMITTERS[toChain]);
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to ' + sourceChain.name + '...';
+  showBridgeOverlay(STEPS_CCTP, CHAINS[fromChain].name, CHAINS[toChain].name);
+  setBridgeStep(STEPS_CCTP, -1, '🔄 Switching to ' + sourceChain.name + '...');
+  btn.innerHTML = '<span class="hourglass">⏳</span> Bridging...';
+
   await switchToChain(fromChain);
   await new Promise(r => setTimeout(r, 1500));
   provider = new ethers.BrowserProvider(window.ethereum);
@@ -2401,13 +2559,13 @@ const destMessageTransmitter = ethers.getAddress(CCTP_TRANSMITTERS[toChain]);
   const decimals = await tokenContract.decimals();
   const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 1/3 — Approving USDC...';
-  showToast('Step 1/3 — Approving USDC...');
+  setBridgeStep(STEPS_CCTP, 0, '✍️ Wallet öffnen — USDC genehmigen...');
+  showToast('Schritt 1/4 — USDC genehmigen...');
   const approveTx = await tokenContract.approve(tokenMessenger, amountBN * 2n);
   await approveTx.wait();
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 2/3 — Burning USDC...';
-  showToast('Step 2/3 — Burning USDC on ' + sourceChain.name + '...');
+  setBridgeStep(STEPS_CCTP, 1, '✍️ Wallet öffnen — USDC verbrennen bestätigen...');
+  showToast('Schritt 2/4 — USDC verbrennen...');
 
   const TM_ABI = [
     "function depositForBurn(uint256 amount, uint32 destinationDomain, bytes32 mintRecipient, address burnToken, bytes32 destinationCaller, uint256 maxFee, uint32 minFinalityThreshold) external returns (uint64 nonce)"
@@ -2415,23 +2573,15 @@ const destMessageTransmitter = ethers.getAddress(CCTP_TRANSMITTERS[toChain]);
   const tmContract = new ethers.Contract(tokenMessenger, TM_ABI, signer);
   const mintRecipient = ethers.zeroPadValue(walletAddress, 32);
 
-  const maxFee = 500n;
   const burnTx = await tmContract.depositForBurn(
-    amountBN,
-    destDomain,
-    mintRecipient,
-    usdcAddress,
-    ethers.ZeroHash,
-    maxFee,
-    1000
+    amountBN, destDomain, mintRecipient, usdcAddress,
+    ethers.ZeroHash, 500n, 1000
   );
-
   const txHash = burnTx.hash;
-  showToast('TX: ' + txHash.slice(0,20) + '...');
   await burnTx.wait();
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Waiting attestation...';
-  showToast('Step 3/3 — Waiting for Circle attestation...');
+  setBridgeStep(STEPS_CCTP, 2, '⏳ Warte auf Circle Attestation...');
+  showToast('Schritt 3/4 — Circle Attestation...');
 
   let attestationData = null;
   for(let i = 0; i < 120; i++) {
@@ -2444,30 +2594,32 @@ const destMessageTransmitter = ethers.getAddress(CCTP_TRANSMITTERS[toChain]);
         break;
       }
     } catch(e) {}
-    btn.innerHTML = `<span class="hourglass">⏳</span> Attestation... (${i+1}/60)`;
+    setBridgeStep(STEPS_CCTP, 2, `⏳ Attestation... (${i+1}/120)`);
   }
 
   if(!attestationData) {
     showToast('⚠️ Attestation timeout — claim manually later!');
+    hideBridgeOverlay();
     btn.disabled = false;
     btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
     return;
   }
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to ' + CHAINS[toChain].name + '...';
+  setBridgeStep(STEPS_CCTP, 3, '🔄 Switching to ' + CHAINS[toChain].name + '...');
   await switchToChain(toChain);
   await new Promise(r => setTimeout(r, 1500));
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Claiming USDC...';
-  showToast('Step 3/3 — Claiming USDC on ' + CHAINS[toChain].name + '...');
+  setBridgeStep(STEPS_CCTP, 3, '✍️ Wallet öffnen — USDC claimen bestätigen...');
+  showToast('Schritt 4/4 — USDC claimen...');
 
   const MT_ABI = ["function receiveMessage(bytes calldata message, bytes calldata attestation) external returns (bool)"];
   const mtContract = new ethers.Contract(destMessageTransmitter, MT_ABI, signer);
   const claimTx = await mtContract.receiveMessage(attestationData.message, attestationData.attestation);
   await claimTx.wait();
 
+  hideBridgeOverlay();
   showToast('✅ USDC arrived on ' + CHAINS[toChain].name + '!');
   btn.disabled = false;
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
@@ -2494,7 +2646,10 @@ async function doCCTPBridge(amt, chain) {
   const destDomain = CCTP_DOMAINS[toChain] !== undefined ? CCTP_DOMAINS[toChain] : 0;
   const feeRecipient = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to ARC...';
+  showBridgeOverlay(STEPS_CCTP, CHAINS[fromChain].name, CHAINS[toChain].name);
+  setBridgeStep(STEPS_CCTP, -1, '🔄 Switching to ARC...');
+  btn.innerHTML = '<span class="hourglass">⏳</span> Bridging...';
+
   await switchToChain('arc');
   await new Promise(r => setTimeout(r, 1500));
   provider = new ethers.BrowserProvider(window.ethereum);
@@ -2505,13 +2660,13 @@ async function doCCTPBridge(amt, chain) {
   const amountBN = ethers.parseUnits(amt.toString(), decimals);
   const feeBN = amountBN / 1000n;
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 1/3 — Approving USDC...';
-  showToast('Step 1/3 — Approving USDC...');
+  setBridgeStep(STEPS_CCTP, 0, '✍️ Wallet öffnen — USDC genehmigen...');
+  showToast('Schritt 1/4 — USDC genehmigen...');
   const approveTx = await tokenContract.approve(bridgingKit, amountBN + feeBN);
   await approveTx.wait();
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 2/3 — Bridging USDC...';
-  showToast('Step 2/3 — Burning USDC on ARC...');
+  setBridgeStep(STEPS_CCTP, 1, '✍️ Wallet öffnen — USDC verbrennen bestätigen...');
+  showToast('Schritt 2/4 — USDC verbrennen...');
 
   const BRIDGING_KIT_ABI = [
     "function bridgeWithPreapproval((uint256 amount, uint256 maxFee, uint256 fee, bytes32 mintRecipient, bytes32 destinationCaller, address burnToken, address feeRecipient, uint32 destinationDomain, uint32 minFinalityThreshold) bridgeParams) external"
@@ -2531,13 +2686,12 @@ async function doCCTPBridge(amt, chain) {
     minFinalityThreshold: 0
   });
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Waiting attestation...';
-  showToast('Step 3/3 — Waiting for Circle attestation...');
   const txHash = burnTx.hash;
-  showToast('TX: ' + txHash.slice(0,20) + '...');
   await burnTx.wait();
 
-  // Poll Circle attestation API
+  setBridgeStep(STEPS_CCTP, 2, '⏳ Warte auf Circle Attestation...');
+  showToast('Schritt 3/4 — Circle Attestation...');
+
   let attestationData = null;
   for(let i = 0; i < 60; i++) {
     await new Promise(r => setTimeout(r, 5000));
@@ -2549,33 +2703,32 @@ async function doCCTPBridge(amt, chain) {
         break;
       }
     } catch(e) {}
-    btn.innerHTML = `<span class="hourglass">⏳</span> Attestation... (${i+1}/60)`;
+    setBridgeStep(STEPS_CCTP, 2, `⏳ Attestation... (${i+1}/60)`);
   }
 
   if(!attestationData) {
     showToast('⚠️ Attestation timeout — claim manually later!');
+    hideBridgeOverlay();
     btn.disabled = false;
     btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
     return;
   }
 
-  // Switch to destination chain
-  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to destination...';
+  setBridgeStep(STEPS_CCTP, 3, '🔄 Switching to ' + CHAINS[toChain].name + '...');
   await switchToChain(toChain);
   await new Promise(r => setTimeout(r, 1500));
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
 
-  // Step 3 - receiveMessage on destination
-  showToast('Step 3/3 — Claiming USDC on ' + CHAINS[toChain].name + '...');
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Claiming USDC...';
+  setBridgeStep(STEPS_CCTP, 3, '✍️ Wallet öffnen — USDC claimen bestätigen...');
+  showToast('Schritt 4/4 — USDC claimen...');
 
   const MT_ABI = ["function receiveMessage(bytes calldata message, bytes calldata attestation) external returns (bool)"];
   const mtContract = new ethers.Contract(messageTransmitter, MT_ABI, signer);
   const claimTx = await mtContract.receiveMessage(attestationData.message, attestationData.attestation);
   await claimTx.wait();
-  
 
+  hideBridgeOverlay();
   showToast('✅ USDC arrived on ' + CHAINS[toChain].name + '!');
 
   await loadRyuBalance();
@@ -2600,80 +2753,73 @@ async function doCCTPBridge(amt, chain) {
 
 async function doLockMintBridge(amt, chain) {
   const btn = document.getElementById('actionBtn');
-  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to ' + CHAINS[fromChain].name + '...';
-await switchToChain(fromChain);
-await new Promise(r => setTimeout(r, 1500));
-provider = new ethers.BrowserProvider(window.ethereum);
-signer = await provider.getSigner();
-  const destChainId = CHAINS[toChain].chainIdDec;
 
+  showBridgeOverlay(STEPS_RYU, CHAINS[fromChain].name, CHAINS[toChain].name);
+  setBridgeStep(STEPS_RYU, -1, '🔄 Switching to ' + CHAINS[fromChain].name + '...');
+  btn.innerHTML = '<span class="hourglass">⏳</span> Bridging...';
+
+  await switchToChain(fromChain);
+  await new Promise(r => setTimeout(r, 1500));
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
+
+  const destChainId = CHAINS[toChain].chainIdDec;
   const bridgeContract = new ethers.Contract(chain.bridgeAddress, BRIDGE_ABI, signer);
 
   if(fromToken.address === 'native') {
-    // ETH Bridge
-    btn.innerHTML = '<span class="hourglass">⏳</span> Step 1/2 — Locking ETH...';
-    showToast('Step 1/2 — Locking ETH on ' + CHAINS[fromChain].name + '...');
-
+    setBridgeStep(STEPS_RYU, 1, '✍️ Wallet öffnen — ETH locken bestätigen...');
+    showToast('Schritt 2/3 — ETH locken...');
     const amountBN = ethers.parseEther(amt.toString());
     const tx = await bridgeContract.lockETH(destChainId, walletAddress, { value: amountBN });
-
-    btn.innerHTML = '<span class="hourglass">⏳</span> Step 2/2 — Relayer minting...';
-    showToast('Step 2/2 — Relayer will mint on ' + CHAINS[toChain].name + ' (~30 sec)...');
     await tx.wait();
-
   } else {
-    // ERC20 Bridge
     const tokenAddr = fromToken.address === 'ryu' ? chain.ryuAddress : fromToken.address;
-    if(!tokenAddr) { showToast('Token not available on this chain'); return; }
+    if(!tokenAddr) { showToast('Token not available on this chain'); hideBridgeOverlay(); return; }
 
     const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
     const decimals = await tokenContract.decimals();
     const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
-    // Step 1 - Approve
-    btn.innerHTML = '<span class="hourglass">⏳</span> Step 1/2 — Approving...';
-    showToast('Step 1/2 — Approving ' + fromToken.symbol + '...');
-
+    setBridgeStep(STEPS_RYU, 0, '✍️ Wallet öffnen — Token genehmigen...');
+    showToast('Schritt 1/3 — Approve...');
     const allowance = await tokenContract.allowance(walletAddress, chain.bridgeAddress);
     if(allowance < amountBN) {
       const approveTx = await tokenContract.approve(chain.bridgeAddress, amountBN);
       await approveTx.wait();
     }
 
-    // Step 2 - Lock
-    btn.innerHTML = '<span class="hourglass">⏳</span> Step 2/2 — Locking tokens...';
-    showToast('Step 2/2 — Locking ' + fromToken.symbol + ' on ' + CHAINS[fromChain].name + '...');
-
+    setBridgeStep(STEPS_RYU, 1, '✍️ Wallet öffnen — Token locken bestätigen...');
+    showToast('Schritt 2/3 — Token locken...');
     const tx = await bridgeContract.lockTokens(tokenAddr, amountBN, destChainId, walletAddress);
     await tx.wait();
   }
 
-  // Switch to destination and mint
-  btn.innerHTML = '<span class="hourglass">⏳</span> Switching to destination...';
-  showToast('Switching to ' + CHAINS[toChain].name + '...');
+  setBridgeStep(STEPS_RYU, 2, '🔄 Switching to ' + CHAINS[toChain].name + '...');
   await switchToChain(toChain);
   await new Promise(r => setTimeout(r, 1500));
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
 
-  btn.innerHTML = '<span class="hourglass">⏳</span> Step 3/3 — Minting tokens...';
-  showToast('Step 3/3 — Minting ' + fromToken.symbol + ' on ' + CHAINS[toChain].name + '...');
+  setBridgeStep(STEPS_RYU, 2, '✍️ Wallet öffnen — Minting bestätigen...');
+  showToast('Schritt 3/3 — Minting...');
 
   const MINT_ABI = ["function mintTokens(address user, address token, uint256 amount, uint256 sourceChainId, uint256 nonce) external"];
   const destChain = CHAINS[toChain];
   const destBridgeContract = new ethers.Contract(destChain.bridgeAddress, MINT_ABI, signer);
   const tokenAddr2 = fromToken.address === 'ryu' ? destChain.ryuAddress : fromToken.address;
   const nonce = Date.now();
-  const mintTx = await destBridgeContract.mintTokens(walletAddress, tokenAddr2, ethers.parseUnits(amt.toString(), fromToken.decimals), CHAINS[fromChain].chainIdDec, nonce);
+  const mintTx = await destBridgeContract.mintTokens(
+    walletAddress, tokenAddr2,
+    ethers.parseUnits(amt.toString(), fromToken.decimals),
+    CHAINS[fromChain].chainIdDec, nonce
+  );
   await mintTx.wait();
 
+  hideBridgeOverlay();
   showToast('✅ ' + fromToken.symbol + ' arrived on ' + CHAINS[toChain].name + '!');
   btn.disabled = false;
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
 
-  
-
-  // Update stats
   stats.bridges++;
   stats.volume += parseFloat(amt) || 0;
   txLog.unshift({
