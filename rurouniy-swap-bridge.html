@@ -1348,10 +1348,22 @@ const CHAIN_TOKENS = {
     { symbol: 'USDC', name: 'USD Coin', icon: '💵', decimals: 6, address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' },
   ],
 };
+const BRIDGE_TOKENS = {
+  arc:              [{ symbol: 'USDC', name: 'USD Coin',        icon: '💵', decimals: 6,  address: '0x3600000000000000000000000000000000000000' },
+                     { symbol: 'RYU',  name: 'RurouniYu Token', icon: '⚔',  decimals: 18, address: 'ryu' }],
+  robinhood:        [{ symbol: 'RYU',  name: 'RurouniYu Token', icon: '⚔',  decimals: 18, address: 'ryu' }],
+  giwa:             [{ symbol: 'RYU',  name: 'RurouniYu Token', icon: '⚔',  decimals: 18, address: 'ryu' }],
+  ink:              [{ symbol: 'RYU',  name: 'RurouniYu Token', icon: '⚔',  decimals: 18, address: 'ryu' }],
+  ethereum_sepolia: [{ symbol: 'USDC', name: 'USD Coin',        icon: '💵',  decimals: 6,  address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' }],
+  base_sepolia:     [{ symbol: 'USDC', name: 'USD Coin',        icon: '💵',  decimals: 6,  address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' }],
+};
 
 // Get tokens for current chain
 function getChainTokens(chainKey) {
-return CHAIN_TOKENS[chainKey] || CHAIN_TOKENS.arc;
+  if(currentMode === 'bridge') {
+    return BRIDGE_TOKENS[chainKey] || BRIDGE_TOKENS.arc;
+  }
+  return CHAIN_TOKENS[chainKey] || CHAIN_TOKENS.arc;
 }
 
 const TOKENS = [
