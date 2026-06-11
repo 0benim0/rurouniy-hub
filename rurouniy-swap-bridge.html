@@ -1734,12 +1734,20 @@ function setMode(mode) {
     document.getElementById('toChainRow').style.display = 'flex';
     bridgeTimeRow.style.display = 'flex';
     // Set different chains for bridge
-    fromChain = currentChain;
-    if(currentChain === 'ethereum_sepolia' || currentChain === 'base_sepolia') {
-      toChain = 'arc';
-    } else {
-      toChain = Object.keys(CHAINS).find(k => k !== currentChain && !CHAINS[k].isBridgeOnly) || 'arc';
-    }
+    fromChain = 'arc';
+    toChain = 'robinhood';
+    currentChain = 'arc';
+    document.getElementById('chainSelectBridge').value = 'arc';
+    const bridgeFromTokens = getChainTokens('arc');
+    const bridgeToTokens = getChainTokens('robinhood');
+    fromToken = bridgeFromTokens.find(t => t.symbol === 'RYU') || bridgeFromTokens[0];
+    toToken = bridgeToTokens.find(t => t.symbol === 'RYU') || bridgeToTokens[0];
+    document.getElementById('fromTokenIcon').textContent = fromToken.icon;
+    document.getElementById('fromTokenName').textContent = fromToken.symbol;
+    document.getElementById('fromTokenFull').textContent = fromToken.name;
+    document.getElementById('toTokenIcon').textContent = toToken.icon;
+    document.getElementById('toTokenName').textContent = toToken.symbol;
+    document.getElementById('toTokenFull').textContent = toToken.name;
     updateChainDisplay();
     updateActionBtn();
     document.getElementById('chainSelectSwap').style.display = 'none';
