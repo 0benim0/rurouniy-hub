@@ -917,19 +917,17 @@ main {
 /* BRIDGE PROGRESS OVERLAY */
 .bridge-overlay {
   display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  min-height: 100%;
+  position: relative;
   background: rgba(0,0,0,0.92);
-  border-radius: 20px;
+  border-radius: 14px;
   z-index: 10;
   flex-direction: column;
   padding: 24px;
+  margin-bottom: 10px;
   animation: overlayFadeIn 0.35s ease forwards;
+  min-height: 400px;
 }
+.bridge-overlay.active { display: flex; }
 .bridge-overlay.active { display: flex; }
 .bridge-overlay.hiding { animation: overlayFadeOut 0.3s ease forwards; }
 @keyframes overlayFadeIn { from{opacity:0} to{opacity:1} }
@@ -1119,6 +1117,15 @@ for(var i=0;i<18;i++){
       </div>
     </div>
 
+    <!-- BRIDGE PROGRESS OVERLAY -->
+    <div class="bridge-overlay" id="bridgeOverlay">
+      <div class="bridge-progress-panel">
+        <div class="bridge-progress-title" id="bridgeProgressTitle">BRIDGE IN PROGRESS</div>
+        <div id="bridgeStepsContainer"></div>
+        <div class="bridge-progress-info" id="bridgeProgressInfo">⏳ Bitte warten...</div>
+      </div>
+    </div>
+
     <!-- FROM BOX -->
     <div class="token-box" id="fromBox">
       <div class="token-box-label">FROM</div>
@@ -1196,16 +1203,7 @@ for(var i=0;i<18;i++){
       <div class="route-row highlight"><span>You Receive</span><span id="routeReceive">—</span></div>
       <div class="route-row" id="bridgeTimeRow" style="display:none;"><span>Est. Bridge Time</span><span id="routeBridgeTime">~2-5 min</span></div>
     </div>
-     <!-- BRIDGE PROGRESS OVERLAY -->
-    <div class="bridge-overlay" id="bridgeOverlay">
-      <div class="bridge-progress-panel">
-        <div class="bridge-progress-title" id="bridgeProgressTitle">BRIDGE IN PROGRESS</div>
-        <div id="bridgeStepsContainer"></div>
-        <div class="bridge-progress-info" id="bridgeProgressInfo">⏳ Bitte warten...</div>
-      </div>
-    </div>
-
-    <!-- ACTION BUTTON -->
+     <!-- ACTION BUTTON -->
      <button class="action-btn connect-btn" id="actionBtn" onclick="doAction()">
       CONNECT WALLET
     </button>
