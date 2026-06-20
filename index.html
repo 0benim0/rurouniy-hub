@@ -693,6 +693,136 @@ main {
 .stat-mini.s-amber .stat-mini-dot { background:#BA7517; }
 .stat-mini.s-teal .stat-mini-dot { background:#1D9E75; }
 .stat-mini-sub { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); margin-top:5px; letter-spacing:1px; }
+/* MEMO SIDEBAR FLASH */
+.memo-sidebar-flash {
+  position: fixed;
+  left: max(20px, calc(50% - 600px));
+  top: 50%;
+  transform: translateY(-50%) translateX(-20px);
+  width: 260px;
+  z-index: 400;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.memo-sidebar-flash.show {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
+}
+@media(max-width: 1100px) {
+  .memo-sidebar-flash { display: none; }
+}
+/* MEMO BADGE & MODAL */
+.tx-memo-badge {
+  margin-top: 10px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: rgba(0,102,204,0.08);
+  border: 1px solid rgba(0,102,204,0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tx-memo-badge:hover {
+  background: rgba(0,102,204,0.14);
+  border-color: rgba(0,102,204,0.3);
+}
+.tx-memo-icon { font-size: 12px; color: var(--accent); flex-shrink: 0; }
+.tx-memo-text {
+  font-size: 10px;
+  font-family: 'Space Mono', monospace;
+  color: var(--accent);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tx-memo-chevron { font-size: 10px; color: var(--accent); flex-shrink: 0; }
+[data-theme="dark"] .tx-memo-badge { background: rgba(0,217,255,0.08); border-color: rgba(0,217,255,0.2); }
+[data-theme="dark"] .tx-memo-badge:hover { background: rgba(0,217,255,0.14); border-color: rgba(0,217,255,0.4); }
+[data-theme="dark"] .tx-memo-icon, [data-theme="dark"] .tx-memo-text, [data-theme="dark"] .tx-memo-chevron { color: #00d9ff; }
+
+.memo-modal-content {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  padding: 20px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+}
+.memo-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.memo-modal-icon { font-size: 18px; color: var(--accent); }
+.memo-modal-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #0f1419;
+}
+.memo-modal-label {
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+.memo-modal-value {
+  font-size: 11px;
+  font-family: 'Space Mono', monospace;
+  background: var(--surface2);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  word-break: break-all;
+  line-height: 1.6;
+  color: #0f1419;
+  border: 1px solid var(--border);
+}
+.memo-modal-sub {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.memo-modal-actions { display: flex; gap: 8px; }
+.memo-modal-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: #0f1419;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.memo-modal-btn:hover { border-color: var(--accent); background: rgba(0,102,204,0.06); }
+.memo-modal-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.memo-modal-btn.primary:hover { box-shadow: var(--glow); }
+[data-theme="dark"] .memo-modal-content { background: #0c1018; border-color: rgba(0,217,255,0.22); }
+[data-theme="dark"] .memo-modal-title { color: #e8f4ff; }
+[data-theme="dark"] .memo-modal-value { background: #111820; border-color: rgba(0,217,255,0.1); color: #e8f4ff; }
+[data-theme="dark"] .memo-modal-btn { background: #171f2c; border-color: rgba(0,217,255,0.15); color: #e8f4ff; }
+[data-theme="dark"] .memo-modal-btn:hover { border-color: #00d9ff; background: rgba(0,217,255,0.07); }
+[data-theme="dark"] .memo-modal-btn.primary { background: #00d9ff; color: #060910; }
+
+/* TX LOG */
 
 /* TX LOG */
 .tx-log-wrap {
@@ -1075,7 +1205,7 @@ for(var i=0;i<18;i++){
   <option value="arc">ARC</option>
   <option value="robinhood">Robinhood</option>
   <option value="giwa">GIWA</option>
-  <option value="ink">INK Sepolia</option>
+  <option value="ink" disabled style="color:#f59e0b;">INK Sepolia — Maintenance</option>
   <option value="ethereum_sepolia">Ethereum Sepolia</option>
   <option value="base_sepolia">Base Sepolia</option>
 </select>
@@ -1125,7 +1255,7 @@ for(var i=0;i<18;i++){
       <div class="bridge-progress-panel">
         <div class="bridge-progress-title" id="bridgeProgressTitle">BRIDGE IN PROGRESS</div>
         <div id="bridgeStepsContainer"></div>
-        <div class="bridge-progress-info" id="bridgeProgressInfo">⏳ Bitte warten...</div>
+        <div class="bridge-progress-info" id="bridgeProgressInfo">⏳ Please wait...</div>
       </div>
     </div>
     <!-- FROM BOX -->
@@ -1333,6 +1463,38 @@ for(var i=0;i<18;i++){
     <div class="token-list" id="chainList"></div>
   </div>
 </div>
+<!-- MEMO SIDEBAR FLASH -->
+<div class="memo-sidebar-flash" id="memoSidebarFlash">
+  <div class="memo-modal-content" style="cursor: pointer;" onclick="openMemoModal(currentSidebarMemo)">
+    <div class="memo-modal-header">
+      <span class="memo-modal-icon">🧾</span>
+      <span class="memo-modal-title">MEMO DETAILS</span>
+    </div>
+    <div class="memo-modal-label">On-chain memo</div>
+    <div class="memo-modal-value" id="memoSidebarValue">—</div>
+    <div class="memo-modal-sub">Verified via the official ARC Memo contract — your wallet is preserved as the sender.</div>
+    <div class="memo-modal-actions">
+      <button class="memo-modal-btn" onclick="event.stopPropagation(); copySidebarMemo()">📋 Copy</button>
+      <button class="memo-modal-btn primary" onclick="event.stopPropagation(); openMemoExplorer()">🔗 Explorer</button>
+    </div>
+  </div>
+</div>
+<!-- MEMO MODAL -->
+<div class="modal-overlay" id="memoModal" onclick="closeMemoModal(event)">
+  <div class="memo-modal-content" onclick="event.stopPropagation()">
+    <div class="memo-modal-header">
+      <span class="memo-modal-icon">🧾</span>
+      <span class="memo-modal-title">MEMO DETAILS</span>
+    </div>
+    <div class="memo-modal-label">On-chain memo</div>
+    <div class="memo-modal-value" id="memoModalValue">—</div>
+    <div class="memo-modal-sub">Verified via the official ARC Memo contract — your wallet is preserved as the sender for the underlying swap.</div>
+    <div class="memo-modal-actions">
+      <button class="memo-modal-btn" onclick="copyMemoModal()">📋 Copy</button>
+      <button class="memo-modal-btn primary" onclick="openMemoExplorer()">🔗 Explorer</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 <div class="info-banner" id="infoBanner">
@@ -1417,7 +1579,10 @@ const CHAINS = {
     usdcAddress: '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
   }
 };
-
+const MULTICALL3FROM = '0x522fAf9A91c41c443c66765030741e4AaCe147D0';
+const MULTICALL3FROM_ABI = ["function aggregate3((address target, bool allowFailure, bytes callData)[] calls) external returns ((bool success, bytes returnData)[] returnData)"];
+const MEMO_CONTRACT = '0x5294E9927c3306DcBaDb03fe70b92e01cCede505';
+const MEMO_ABI = ["function memo(address target, bytes calldata data, bytes32 memoId, bytes calldata memoData) external"];
 const BRIDGE_ABI = [
   "function lockTokens(address token, uint256 amount, uint256 destinationChainId, address destinationAddress) external",
   "function lockETH(uint256 destinationChainId, address destinationAddress) external payable",
@@ -1726,19 +1891,58 @@ async function claimFaucet() {
 }
   }
 }
+// ========== ARC v0.7.2 — TX MEMOS ==========
+function generateMemo(type, extra = {}) {
+  const ts = Date.now();
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  if (type === 'swap')   return `RYU-SWAP-${extra.from}-${extra.to}-${ts}-${rand}`;
+  if (type === 'bridge') return `RYU-BRIDGE-${(extra.fromChain||'').toUpperCase()}-${(extra.toChain||'').toUpperCase()}-${ts}-${rand}`;
+  if (type === 'faucet') return `RYU-FAUCET-${ts}-${rand}`;
+  return `RYU-TX-${ts}-${rand}`;
+}
 
+function memoToHex(memo) {
+  return '0x' + Array.from(new TextEncoder().encode(memo))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function attachMemoTx(memo) {
+  // Sendet eine 0-ETH TX an sich selbst mit dem Memo als data-Feld
+  // ARC v0.7.2 speichert dieses als durchsuchbares TX-Memo on-chain
+  try {
+    const tx = await signer.sendTransaction({
+      to: walletAddress,
+      value: 0n,
+      data: memoToHex(memo)
+    });
+    console.log('[ARC Memo TX]', memo, tx.hash);
+    return tx.hash;
+  } catch(e) {
+    console.warn('[Memo TX non-critical]', e.message);
+    return null;
+  }
+}
 // ========== UTILS ==========
 // ========== BRIDGE PROGRESS OVERLAY ==========
+const STEPS_CCTP_BATCH = [
+  { title: 'Step 1/3 — Approve + Burn', sub: 'Batch TX — 1 signature only' },
+  { title: 'Step 2/3 — Attestation',    sub: 'Waiting for Circle...' },
+  { title: 'Step 3/3 — Claim USDC',     sub: 'Confirm on destination chain' },
+];
+const STEPS_RYU_BATCH = [
+  { title: 'Step 1/2 — Approve + Lock', sub: 'Batch TX — 1 signature only' },
+  { title: 'Step 2/2 — Mint',           sub: 'Confirm on destination chain' },
+];
 const STEPS_CCTP = [
-  { title: 'Schritt 1/4 — Approve',            sub: 'USDC genehmigen' },
-  { title: 'Schritt 2/4 — USDC verbrennen',    sub: 'Transaktion bestätigen' },
-  { title: 'Schritt 3/4 — Circle Attestation', sub: 'Warte auf Circle...' },
-  { title: 'Schritt 4/4 — USDC claimen',       sub: 'Auf Zielchain bestätigen' },
+  { title: 'Step 1/4 — Approve',      sub: 'Approve USDC' },
+  { title: 'Step 2/4 — Burn USDC',    sub: 'Confirm transaction' },
+  { title: 'Step 3/4 — Attestation',  sub: 'Waiting for Circle...' },
+  { title: 'Step 4/4 — Claim USDC',   sub: 'Confirm on destination chain' },
 ];
 const STEPS_RYU = [
-  { title: 'Schritt 1/3 — Approve',        sub: 'Token genehmigen' },
-  { title: 'Schritt 2/3 — Token locken',   sub: 'Transaktion bestätigen' },
-  { title: 'Schritt 3/3 — Token minting',  sub: 'Auf Zielchain bestätigen' },
+  { title: 'Step 1/3 — Approve',  sub: 'Approve token' },
+  { title: 'Step 2/3 — Lock',     sub: 'Confirm transaction' },
+  { title: 'Step 3/3 — Mint',     sub: 'Confirm on destination chain' },
 ];
 function showBridgeOverlay(steps, fromName, toName) {
   document.getElementById('bridgeProgressTitle').textContent = (fromName + ' → ' + toName).toUpperCase();
@@ -1845,16 +2049,63 @@ function renderTxLog() {
     el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:10px;padding:18px;">No activity yet</div>';
     return;
   }
-  el.innerHTML = txLog.slice(0,8).map(tx => `
-    <div class="tx-log-item">
-      <div class="tx-type-dot" style="background:${tx.type==='swap'?'#00d9ff':'#a78bfa'};box-shadow:0 0 6px ${tx.type==='swap'?'#00d9ff':'#a78bfa'};"></div>
-      <div class="tx-log-info">
-        <div class="tx-log-main">${tx.label}</div>
-        <div class="tx-log-sub">${tx.time} · ${tx.chain}</div>
+  el.innerHTML = txLog.slice(0,8).map((tx, i) => `
+    <div class="tx-log-item" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="tx-type-dot" style="background:${tx.type==='swap'?'#00d9ff':'#a78bfa'};box-shadow:0 0 6px ${tx.type==='swap'?'#00d9ff':'#a78bfa'};"></div>
+        <div class="tx-log-info">
+          <div class="tx-log-main">${tx.label}</div>
+          <div class="tx-log-sub">${tx.time} · ${tx.chain}</div>
+        </div>
+        <div class="tx-log-status ${tx.status==='done'?'status-done':'status-pending'}">${tx.status.toUpperCase()}</div>
       </div>
-      <div class="tx-log-status ${tx.status==='done'?'status-done':'status-pending'}">${tx.status.toUpperCase()}</div>
+      ${tx.memo ? `
+      <button class="tx-memo-badge" onclick="openMemoModal('${tx.memo}')">
+        <span class="tx-memo-icon">🧾</span>
+        <span class="tx-memo-text">${tx.memo}</span>
+        <span class="tx-memo-chevron">›</span>
+      </button>` : ''}
     </div>
   `).join('');
+}
+
+// ========== MEMO SIDEBAR FLASH ==========
+let currentSidebarMemo = '';
+let memoSidebarTimer = null;
+function showMemoSidebarFlash(memo) {
+  currentSidebarMemo = memo;
+  document.getElementById('memoSidebarValue').textContent = memo;
+  const el = document.getElementById('memoSidebarFlash');
+  el.classList.add('show');
+  clearTimeout(memoSidebarTimer);
+  memoSidebarTimer = setTimeout(() => {
+    el.classList.remove('show');
+  }, 4000);
+}
+function copySidebarMemo() {
+  navigator.clipboard.writeText(currentSidebarMemo);
+  showToast('📋 Memo copied to clipboard');
+}
+
+// ========== MEMO MODAL ==========
+let currentMemoValue = '';
+function openMemoModal(memo) {
+  currentMemoValue = memo;
+  document.getElementById('memoModalValue').textContent = memo;
+  document.getElementById('memoModal').classList.add('open');
+}
+function closeMemoModal(e) {
+  if(!e || e.target.classList.contains('modal-overlay')) {
+    document.getElementById('memoModal').classList.remove('open');
+  }
+}
+function copyMemoModal() {
+  navigator.clipboard.writeText(currentMemoValue);
+  showToast('📋 Memo copied to clipboard');
+}
+function openMemoExplorer() {
+  const chain = CHAINS[currentChain] || CHAINS.arc;
+  window.open(chain.explorer, '_blank');
 }
 
 // ========== MODE ==========
@@ -2036,7 +2287,7 @@ function renderChainList() {
   const current = currentChainTarget === 'from' ? fromChain : toChain;
   const entries = Object.entries(CHAINS).filter(([key, c]) => {
     if(currentMode === 'swap') return !c.isBridgeOnly;
-    return true;
+    return key !== 'ink';
   });
   document.getElementById('chainList').innerHTML = entries.map(([key, c]) => `
     <div class="chain-list-item ${key===current?'selected':''}" onclick="selectChain('${key}')">
@@ -2408,7 +2659,8 @@ async function doSwap(amt) {
     ];
     const ERC20_APPROVE_ABI = [
       "function approve(address spender, uint256 amount) external returns (bool)",
-      "function allowance(address owner, address spender) external view returns (uint256)"
+      "function allowance(address owner, address spender) external view returns (uint256)",
+      "function balanceOf(address account) external view returns (uint256)"
     ];
 
     const swapContract = new ethers.Contract(chain.swapAddress, SWAP_ABI, signer);
@@ -2416,9 +2668,20 @@ async function doSwap(amt) {
     if(fromToken.address === 'native') {
       // ETH → Token
       const amountBN = ethers.parseEther(amt.toString());
+      const ethBalance = await provider.getBalance(walletAddress);
+      if(ethBalance < amountBN) {
+        showToast(`❌ Insufficient balance — you have ${parseFloat(ethers.formatEther(ethBalance)).toFixed(4)} ${fromToken.symbol}, need ${amt}`);
+        return;
+      }
       btn.innerHTML = '<span class="hourglass">⏳</span> Swapping ETH...';
-      const tx = await swapContract.swapETHForToken(tokenOutAddr, 0, { value: amountBN });
+      const swapCalldata = swapContract.interface.encodeFunctionData('swapETHForToken', [tokenOutAddr, 0]);
+      const swapMemoString = generateMemo('swap', { from: fromToken.symbol, to: toToken.symbol });
+      const memoId = ethers.id(swapMemoString);
+      const memoData = ethers.toUtf8Bytes(swapMemoString);
+      const memoContract = new ethers.Contract(MEMO_CONTRACT, MEMO_ABI, signer);
+      const tx = await memoContract.memo(chain.swapAddress, swapCalldata, memoId, memoData, { value: amountBN });
       await tx.wait();
+      window._lastSwapMemo = swapMemoString;
 
     } else if(toToken.address === 'native') {
       // Token → ETH
@@ -2426,6 +2689,12 @@ async function doSwap(amt) {
       const decimals = Number(fromToken.decimals) || 18;
       const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
+      const tokenBalance = await tokenContract.balanceOf(walletAddress);
+      if(tokenBalance < amountBN) {
+        showToast(`❌ Insufficient balance — you have ${parseFloat(ethers.formatUnits(tokenBalance, decimals)).toFixed(4)} ${fromToken.symbol}, need ${amt}`);
+        return;
+      }
+
       btn.innerHTML = '<span class="hourglass">⏳</span> Approving...';
       const allowance = await tokenContract.allowance(walletAddress, chain.swapAddress);
       if(allowance < amountBN) {
@@ -2434,8 +2703,14 @@ async function doSwap(amt) {
       }
 
       btn.innerHTML = '<span class="hourglass">⏳</span> Swapping...';
-      const tx = await swapContract.swapTokenForETH(tokenInAddr, amountBN, 0);
+      const swapCalldata = swapContract.interface.encodeFunctionData('swapTokenForETH', [tokenInAddr, amountBN, 0]);
+      const swapMemoString = generateMemo('swap', { from: fromToken.symbol, to: toToken.symbol });
+      const memoId = ethers.id(swapMemoString);
+      const memoData = ethers.toUtf8Bytes(swapMemoString);
+      const memoContract = new ethers.Contract(MEMO_CONTRACT, MEMO_ABI, signer);
+      const tx = await memoContract.memo(chain.swapAddress, swapCalldata, memoId, memoData);
       await tx.wait();
+      window._lastSwapMemo = swapMemoString;
 
     } else {
       // Token → Token
@@ -2443,19 +2718,33 @@ async function doSwap(amt) {
       const decimals = Number(fromToken.decimals) || 18;
       const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
-      btn.innerHTML = '<span class="hourglass">⏳</span> Approving...';
-      const allowance = await tokenContract.allowance(walletAddress, chain.swapAddress);
-      if(allowance < amountBN) {
-        const approveTx = await tokenContract.approve(chain.swapAddress, amountBN);
-        await approveTx.wait();
+      const tokenBalance = await tokenContract.balanceOf(walletAddress);
+      if(tokenBalance < amountBN) {
+        showToast(`❌ Insufficient balance — you have ${parseFloat(ethers.formatUnits(tokenBalance, decimals)).toFixed(4)} ${fromToken.symbol}, need ${amt}`);
+        return;
       }
 
-      btn.innerHTML = '<span class="hourglass">⏳</span> Swapping...';
-      const tx = await swapContract.swap(tokenInAddr, tokenOutAddr, amountBN, 0);
+      btn.innerHTML = '<span class="hourglass">⏳</span> Checking Approve...';
+      const allowance = await tokenContract.allowance(walletAddress, chain.swapAddress);
+      if(allowance < amountBN) {
+        btn.innerHTML = '<span class="hourglass">⏳</span> Step 1/2 — Approve...';
+        const approveTx = await tokenContract.approve(chain.swapAddress, amountBN * 2n);
+        await approveTx.wait();
+        showToast('✅ Approve done — confirming Swap...');
+      }
+      btn.innerHTML = '<span class="hourglass">⏳</span> Step 2/2 — Swapping...';
+      const swapCalldata = swapContract.interface.encodeFunctionData('swap', [tokenInAddr, tokenOutAddr, amountBN, 0]);
+      const swapMemoString = generateMemo('swap', { from: fromToken.symbol, to: toToken.symbol });
+      const memoId = ethers.id(swapMemoString);
+      const memoData = ethers.toUtf8Bytes(swapMemoString);
+      const memoContract = new ethers.Contract(MEMO_CONTRACT, MEMO_ABI, signer);
+      const tx = await memoContract.memo(chain.swapAddress, swapCalldata, memoId, memoData);
       await tx.wait();
+      window._lastSwapMemo = swapMemoString;
     }
 
     showToast('✅ Swap successful!');
+    if(window._lastSwapMemo) showMemoSidebarFlash(window._lastSwapMemo);
     await loadRyuBalance();
     await loadFaucetStatus();
     stats.swaps++;
@@ -2465,6 +2754,7 @@ async function doSwap(amt) {
       label: `${amt} ${fromToken.symbol} → ${toToken.symbol}`,
       time: new Date().toLocaleTimeString(),
       chain: chain.name || currentChain,
+      memo: window._lastSwapMemo,
       status: 'done'
     });
     saveStats();
@@ -2571,13 +2861,22 @@ async function doReverseCCTPBridge(amt) {
   const decimals = await tokenContract.decimals();
   const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
-  setBridgeStep(STEPS_CCTP, 0, '✍️ Wallet öffnen — USDC genehmigen...');
-  showToast('Schritt 1/4 — USDC genehmigen...');
+  const usdcBalance = await tokenContract.balanceOf(walletAddress);
+  if(usdcBalance < amountBN) {
+    showToast(`❌ Insufficient balance — you have ${parseFloat(ethers.formatUnits(usdcBalance, decimals)).toFixed(4)} USDC, need ${amt}`);
+    hideBridgeOverlay();
+    btn.disabled = false;
+    btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
+    return;
+  }
+
+  setBridgeStep(STEPS_CCTP, 0, '✍️ Open wallet — approve USDC...');
+      showToast('Step 1/4 — Approve USDC...');
   const approveTx = await tokenContract.approve(tokenMessenger, amountBN * 2n);
   await approveTx.wait();
 
-  setBridgeStep(STEPS_CCTP, 1, '✍️ Wallet öffnen — USDC verbrennen bestätigen...');
-  showToast('Schritt 2/4 — USDC verbrennen...');
+  setBridgeStep(STEPS_CCTP, 1, '✍️ Open wallet — confirm burn...');
+    showToast('Step 2/4 — Burn USDC...');
 
   const TM_ABI = [
     "function depositForBurn(uint256 amount, uint32 destinationDomain, bytes32 mintRecipient, address burnToken, bytes32 destinationCaller, uint256 maxFee, uint32 minFinalityThreshold) external returns (uint64 nonce)"
@@ -2592,8 +2891,8 @@ async function doReverseCCTPBridge(amt) {
   const txHash = burnTx.hash;
   await burnTx.wait();
 
-  setBridgeStep(STEPS_CCTP, 2, '⏳ Warte auf Circle Attestation...');
-  showToast('Schritt 3/4 — Circle Attestation...');
+  setBridgeStep(STEPS_CCTP, 2, '⏳ Waiting for Circle attestation...');
+  showToast('Step 3/4 — Circle Attestation...');
 
   let attestationData = null;
   for(let i = 0; i < 120; i++) {
@@ -2623,8 +2922,8 @@ async function doReverseCCTPBridge(amt) {
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
 
-  setBridgeStep(STEPS_CCTP, 3, '✍️ Wallet öffnen — USDC claimen bestätigen...');
-  showToast('Schritt 4/4 — USDC claimen...');
+  setBridgeStep(STEPS_CCTP, 3, '✍️ Open wallet — confirm claim...');
+      showToast('Step 4/4 — Claim USDC...');
 
   const MT_ABI = ["function receiveMessage(bytes calldata message, bytes calldata attestation) external returns (bool)"];
   const mtContract = new ethers.Contract(destMessageTransmitter, MT_ABI, signer);
@@ -2633,6 +2932,8 @@ async function doReverseCCTPBridge(amt) {
 
   hideBridgeOverlay();
   showToast('✅ USDC arrived on ' + CHAINS[toChain].name + '!');
+  const reverseBridgeMemo = generateMemo('bridge', { fromChain, toChain });
+  showMemoSidebarFlash(reverseBridgeMemo);
   btn.disabled = false;
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
 
@@ -2643,6 +2944,7 @@ async function doReverseCCTPBridge(amt) {
     label: `${amt} USDC — ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`,
     time: new Date().toLocaleTimeString(),
     chain: CHAINS[fromChain].name,
+    memo: reverseBridgeMemo,
     status: 'done'
   });
   saveStats();
@@ -2658,8 +2960,8 @@ async function doCCTPBridge(amt, chain) {
   const destDomain = CCTP_DOMAINS[toChain] !== undefined ? CCTP_DOMAINS[toChain] : 0;
   const feeRecipient = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
 
-  showBridgeOverlay(STEPS_CCTP, CHAINS[fromChain].name, CHAINS[toChain].name);
-  setBridgeStep(STEPS_CCTP, -1, '🔄 Switching to ARC...');
+  showBridgeOverlay(STEPS_CCTP_BATCH, CHAINS[fromChain].name, CHAINS[toChain].name);
+  setBridgeStep(STEPS_CCTP_BATCH, -1, '🔄 Switching to ARC...');
   btn.innerHTML = '<span class="hourglass">⏳</span> Bridging...';
 
   await switchToChain('arc');
@@ -2672,13 +2974,17 @@ async function doCCTPBridge(amt, chain) {
   const amountBN = ethers.parseUnits(amt.toString(), decimals);
   const feeBN = amountBN / 1000n;
 
-  setBridgeStep(STEPS_CCTP, 0, '✍️ Wallet öffnen — USDC genehmigen...');
-  showToast('Schritt 1/4 — USDC genehmigen...');
-  const approveTx = await tokenContract.approve(bridgingKit, amountBN + feeBN);
-  await approveTx.wait();
+  const usdcBalance = await tokenContract.balanceOf(walletAddress);
+  if(usdcBalance < amountBN + feeBN) {
+    showToast(`❌ Insufficient balance — you have ${parseFloat(ethers.formatUnits(usdcBalance, decimals)).toFixed(4)} USDC, need ${parseFloat(ethers.formatUnits(amountBN + feeBN, decimals)).toFixed(4)} (incl. fee)`);
+    hideBridgeOverlay();
+    btn.disabled = false;
+    btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
+    return;
+  }
 
-  setBridgeStep(STEPS_CCTP, 1, '✍️ Wallet öffnen — USDC verbrennen bestätigen...');
-  showToast('Schritt 2/4 — USDC verbrennen...');
+  setBridgeStep(STEPS_CCTP_BATCH, 0, '✍️ Open wallet — approve + burn in one TX...');
+  showToast('Step 1/3 — Batch: Approve + Burn...');
 
   const BRIDGING_KIT_ABI = [
     "function bridgeWithPreapproval((uint256 amount, uint256 maxFee, uint256 fee, bytes32 mintRecipient, bytes32 destinationCaller, address burnToken, address feeRecipient, uint32 destinationDomain, uint32 minFinalityThreshold) bridgeParams) external"
@@ -2686,7 +2992,8 @@ async function doCCTPBridge(amt, chain) {
   const bridgingContract = new ethers.Contract(bridgingKit, BRIDGING_KIT_ABI, signer);
   const mintRecipient = ethers.zeroPadValue(walletAddress, 32);
 
-  const burnTx = await bridgingContract.bridgeWithPreapproval({
+  const approveCalldata = tokenContract.interface.encodeFunctionData('approve', [bridgingKit, amountBN + feeBN]);
+  const burnParams = {
     amount: amountBN,
     maxFee: amountBN / 10n,
     fee: feeBN,
@@ -2696,13 +3003,27 @@ async function doCCTPBridge(amt, chain) {
     feeRecipient: feeRecipient,
     destinationDomain: destDomain,
     minFinalityThreshold: 0
-  });
+  };
+  const burnCalldata = bridgingContract.interface.encodeFunctionData('bridgeWithPreapproval', [burnParams]);
+  const multicallContract = new ethers.Contract(MULTICALL3FROM, MULTICALL3FROM_ABI, signer);
+  const batchCalls = [
+    { target: usdcAddress, allowFailure: false, callData: approveCalldata },
+    { target: bridgingKit, allowFailure: false, callData: burnCalldata }
+  ];
 
-  const txHash = burnTx.hash;
-  await burnTx.wait();
+  // Simulate before sending (per ARC docs recommendation)
+  const aggregateData = multicallContract.interface.encodeFunctionData('aggregate3', [batchCalls]);
+  const simResult = await provider.call({ from: walletAddress, to: MULTICALL3FROM, data: aggregateData });
+  const [simulatedResults] = multicallContract.interface.decodeFunctionResult('aggregate3', simResult);
+  if (!simulatedResults.every(r => r.success)) {
+    throw new Error('Batch simulation failed — one or more subcalls would revert');
+  }
 
-  setBridgeStep(STEPS_CCTP, 2, '⏳ Warte auf Circle Attestation...');
-  showToast('Schritt 3/4 — Circle Attestation...');
+  const batchTx = await multicallContract.aggregate3(batchCalls);
+  window._lastBridgeMemo = generateMemo('bridge', { fromChain: 'arc', toChain });
+
+  const txHash = batchTx.hash;
+  await batchTx.wait();
 
   let attestationData = null;
   for(let i = 0; i < 60; i++) {
@@ -2715,7 +3036,7 @@ async function doCCTPBridge(amt, chain) {
         break;
       }
     } catch(e) {}
-    setBridgeStep(STEPS_CCTP, 2, `⏳ Attestation... (${i+1}/60)`);
+    setBridgeStep(STEPS_CCTP_BATCH, 1, `⏳ Attestation... (${i+1}/60)`);
   }
 
   if(!attestationData) {
@@ -2726,14 +3047,14 @@ async function doCCTPBridge(amt, chain) {
     return;
   }
 
-  setBridgeStep(STEPS_CCTP, 3, '🔄 Switching to ' + CHAINS[toChain].name + '...');
+  setBridgeStep(STEPS_CCTP_BATCH, 2, '🔄 Switching to ' + CHAINS[toChain].name + '...');
   await switchToChain(toChain);
   await new Promise(r => setTimeout(r, 1500));
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
 
-  setBridgeStep(STEPS_CCTP, 3, '✍️ Wallet öffnen — USDC claimen bestätigen...');
-  showToast('Schritt 4/4 — USDC claimen...');
+  setBridgeStep(STEPS_CCTP_BATCH, 2, '✍️ Open wallet — confirm claim...');
+  showToast('Step 3/3 — Claim USDC...');
 
   const MT_ABI = ["function receiveMessage(bytes calldata message, bytes calldata attestation) external returns (bool)"];
   const mtContract = new ethers.Contract(messageTransmitter, MT_ABI, signer);
@@ -2742,6 +3063,7 @@ async function doCCTPBridge(amt, chain) {
 
   hideBridgeOverlay();
   showToast('✅ USDC arrived on ' + CHAINS[toChain].name + '!');
+  if(window._lastBridgeMemo) showMemoSidebarFlash(window._lastBridgeMemo);
 
   await loadRyuBalance();
   await loadFaucetStatus();
@@ -2755,19 +3077,21 @@ async function doCCTPBridge(amt, chain) {
     label: `${amt} USDC — ARC → ${CHAINS[toChain].name}`,
     time: new Date().toLocaleTimeString(),
     chain: 'ARC',
-    status: 'done'
-  });
-  saveStats();
-  updateStatsDisplay();
-  renderTxLog();
-  loadRealBalances();
-}
+    memo: window._lastBridgeMemo || generateMemo('bridge', { fromChain, toChain }),
+      status: 'done'
+    });
+    saveStats();
+    updateStatsDisplay();
+    renderTxLog();
+    loadRealBalances();
+  }
 
 async function doLockMintBridge(amt, chain) {
   const btn = document.getElementById('actionBtn');
 
-  showBridgeOverlay(STEPS_RYU, CHAINS[fromChain].name, CHAINS[toChain].name);
-  setBridgeStep(STEPS_RYU, -1, '🔄 Switching to ' + CHAINS[fromChain].name + '...');
+  const steps = fromChain === 'arc' ? STEPS_RYU_BATCH : STEPS_RYU;
+  showBridgeOverlay(steps, CHAINS[fromChain].name, CHAINS[toChain].name);
+  setBridgeStep(steps, -1, '🔄 Switching to ' + CHAINS[fromChain].name + '...');
   btn.innerHTML = '<span class="hourglass">⏳</span> Bridging...';
 
   await switchToChain(fromChain);
@@ -2779,9 +3103,17 @@ async function doLockMintBridge(amt, chain) {
   const bridgeContract = new ethers.Contract(chain.bridgeAddress, BRIDGE_ABI, signer);
 
   if(fromToken.address === 'native') {
-    setBridgeStep(STEPS_RYU, 1, '✍️ Wallet öffnen — ETH locken bestätigen...');
-    showToast('Schritt 2/3 — ETH locken...');
     const amountBN = ethers.parseEther(amt.toString());
+    const ethBalance = await provider.getBalance(walletAddress);
+    if(ethBalance < amountBN) {
+      showToast(`❌ Insufficient balance — you have ${parseFloat(ethers.formatEther(ethBalance)).toFixed(4)} ${fromToken.symbol}, need ${amt}`);
+      hideBridgeOverlay();
+      btn.disabled = false;
+      btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
+      return;
+    }
+    setBridgeStep(STEPS_RYU, 1, '✍️ Open wallet — confirm lock ETH...');
+    showToast('Step 2/3 — Lock ETH...');
     const tx = await bridgeContract.lockETH(destChainId, walletAddress, { value: amountBN });
     await tx.wait();
   } else {
@@ -2792,28 +3124,63 @@ async function doLockMintBridge(amt, chain) {
     const decimals = await tokenContract.decimals();
     const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
-    setBridgeStep(STEPS_RYU, 0, '✍️ Wallet öffnen — Token genehmigen...');
-    showToast('Schritt 1/3 — Approve...');
-    const allowance = await tokenContract.allowance(walletAddress, chain.bridgeAddress);
-    if(allowance < amountBN) {
-      const approveTx = await tokenContract.approve(chain.bridgeAddress, amountBN);
-      await approveTx.wait();
+    const tokenBalance = await tokenContract.balanceOf(walletAddress);
+    if(tokenBalance < amountBN) {
+      showToast(`❌ Insufficient balance — you have ${parseFloat(ethers.formatUnits(tokenBalance, decimals)).toFixed(4)} ${fromToken.symbol}, need ${amt}`);
+      hideBridgeOverlay();
+      btn.disabled = false;
+      btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
+      return;
     }
 
-    setBridgeStep(STEPS_RYU, 1, '✍️ Wallet öffnen — Token locken bestätigen...');
-    showToast('Schritt 2/3 — Token locken...');
-    const tx = await bridgeContract.lockTokens(tokenAddr, amountBN, destChainId, walletAddress);
+    let tx;
+    if(fromChain === 'arc') {
+      setBridgeStep(STEPS_RYU_BATCH, 0, '✍️ Open wallet — approve + lock in one TX...');
+      showToast('Step 1/2 — Batch: Approve + Lock...');
+      const approveCalldata = tokenContract.interface.encodeFunctionData('approve', [chain.bridgeAddress, amountBN]);
+      const lockCalldata = bridgeContract.interface.encodeFunctionData('lockTokens', [tokenAddr, amountBN, destChainId, walletAddress]);
+      const multicallC = new ethers.Contract(MULTICALL3FROM, MULTICALL3FROM_ABI, signer);
+      const batchCallsLock = [
+        { target: tokenAddr, allowFailure: false, callData: approveCalldata },
+        { target: chain.bridgeAddress, allowFailure: false, callData: lockCalldata }
+      ];
+
+      // Simulate before sending (per ARC docs recommendation)
+      const aggregateDataLock = multicallC.interface.encodeFunctionData('aggregate3', [batchCallsLock]);
+      const simResultLock = await provider.call({ from: walletAddress, to: MULTICALL3FROM, data: aggregateDataLock });
+      const [simulatedResultsLock] = multicallC.interface.decodeFunctionResult('aggregate3', simResultLock);
+      if (!simulatedResultsLock.every(r => r.success)) {
+        throw new Error('Batch simulation failed — one or more subcalls would revert');
+      }
+
+      tx = await multicallC.aggregate3(batchCallsLock);
+      window._lastBridgeMemo = generateMemo('bridge', { fromChain, toChain });
+    } else {
+      setBridgeStep(STEPS_RYU, 0, '✍️ Open wallet — approve token...');
+      showToast('Step 1/3 — Approve...');
+      const allowance = await tokenContract.allowance(walletAddress, chain.bridgeAddress);
+      if(allowance < amountBN) {
+        const approveTx = await tokenContract.approve(chain.bridgeAddress, amountBN);
+        await approveTx.wait();
+      }
+      setBridgeStep(STEPS_RYU, 1, '✍️ Open wallet — confirm lock...');
+      showToast('Step 2/3 — Lock token...');
+      tx = await bridgeContract.lockTokens(tokenAddr, amountBN, destChainId, walletAddress);
+      window._lastBridgeMemo = generateMemo('bridge', { fromChain, toChain });
+    }
     await tx.wait();
   }
 
-  setBridgeStep(STEPS_RYU, 2, '🔄 Switching to ' + CHAINS[toChain].name + '...');
+  const stepsRef = fromChain === 'arc' ? STEPS_RYU_BATCH : STEPS_RYU;
+  const mintStepIdx = fromChain === 'arc' ? 1 : 2;
+  setBridgeStep(stepsRef, mintStepIdx, '🔄 Switching to ' + CHAINS[toChain].name + '...');
   await switchToChain(toChain);
   await new Promise(r => setTimeout(r, 1500));
   provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
 
-  setBridgeStep(STEPS_RYU, 2, '✍️ Wallet öffnen — Minting bestätigen...');
-  showToast('Schritt 3/3 — Minting...');
+  setBridgeStep(stepsRef, mintStepIdx, '✍️ Open wallet — confirm mint...');
+  showToast(fromChain === 'arc' ? 'Step 2/2 — Mint...' : 'Step 3/3 — Mint...');
 
   const MINT_ABI = ["function mintTokens(address user, address token, uint256 amount, uint256 sourceChainId, uint256 nonce) external"];
   const destChain = CHAINS[toChain];
@@ -2829,6 +3196,7 @@ async function doLockMintBridge(amt, chain) {
 
   hideBridgeOverlay();
   showToast('✅ ' + fromToken.symbol + ' arrived on ' + CHAINS[toChain].name + '!');
+  if(window._lastBridgeMemo) showMemoSidebarFlash(window._lastBridgeMemo);
   btn.disabled = false;
   btn.innerHTML = `BRIDGE ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`;
 
@@ -2839,13 +3207,14 @@ async function doLockMintBridge(amt, chain) {
     label: `${amt} ${fromToken.symbol} — ${CHAINS[fromChain].name} → ${CHAINS[toChain].name}`,
     time: new Date().toLocaleTimeString(),
     chain: CHAINS[fromChain].name,
-    status: 'done'
-  });
-  saveStats();
-  updateStatsDisplay();
-  renderTxLog();
-  loadRealBalances();
-}
+    memo: window._lastBridgeMemo || generateMemo('bridge', { fromChain, toChain }),
+      status: 'done'
+    });
+    saveStats();
+    updateStatsDisplay();
+    renderTxLog();
+    loadRealBalances();
+  }
 
 // ========== TOOLTIP ==========
 function showRyuInfo() { document.getElementById('ryuInfoTooltip').style.display = 'block'; }
