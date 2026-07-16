@@ -1745,7 +1745,7 @@ async function getTokenBalance(token, chainKey) {
       }
     };
 
-    return await Promise.race([fetchBalance(), timeout]);
+    return await Promise.race([callWithRetry(fetchBalance), timeout]);
   } catch(e) {
     return '—';
   }
