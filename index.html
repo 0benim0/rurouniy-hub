@@ -3262,9 +3262,13 @@ window.addEventListener('load', function() {
         updateActionBtn();
       }
     });
-    window.ethereum.on('chainChanged', function(chainId) {
+    window.ethereum.on('chainChanged', async function(chainId) {
       const matched = Object.entries(CHAINS).find(([k,c]) => c.chainIdDec === parseInt(chainId, 16) || parseInt(c.chainId, 16) === parseInt(chainId, 16));
       if(matched) {
+        if(walletAddress) {
+          provider = new ethers.BrowserProvider(window.ethereum);
+          signer = await provider.getSigner();
+        }
         currentChain = matched[0];
         document.getElementById('chainSelectBridge').value = matched[0];
 
