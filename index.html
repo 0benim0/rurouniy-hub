@@ -1675,6 +1675,13 @@ const TOKENS = [
 let currentMode = 'swap';
 let walletAddress = null;
 let provider = null, signer = null;
+const rpcProviderCache = {};
+function getCachedRpcProvider(chainKey) {
+  if(!rpcProviderCache[chainKey]) {
+    rpcProviderCache[chainKey] = new ethers.JsonRpcProvider(CHAINS[chainKey].rpc);
+  }
+  return rpcProviderCache[chainKey];
+}
 let currentChain = 'robinhood';
 let ryuContract = null;
 let fromToken = TOKENS[0];
@@ -1714,7 +1721,7 @@ async function getTokenBalance(token, chainKey) {
     );
 
     const fetchBalance = async () => {
-      const chainRpc = new ethers.JsonRpcProvider(chainData.rpc);
+      const chainRpc = getCachedRpcProvider(chainKey);
 
       if(token.address === 'native') {
         const bal = await chainRpc.getBalance(walletAddress);
@@ -2004,44 +2011,44 @@ function saveStats() {
     localStorage.setItem('ryuSwapTx', JSON.stringify(txLog.slice(0,20)));
   } catch(e) {}
 }
+async function callWithRetry(fn, retries = 4, delayMs = 1500) {
+  for(let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch(e) {
+      const msg = (e.message || '') + JSON.stringify(e.info || '');
+      const isLimit = msg.includes('429') || msg.includes('Too Many') || msg.includes('-32011') || msg.includes('request limit');
+      if(i === retries - 1 || !isLimit) throw e;
+      await new Promise(r => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+}
+
 async function updateStatsDisplay() {
   try {
-    let totalSwaps = 0;
+    const arcRpc = getCachedRpcProvider('arc');
+    const totalSwaps = await callWithRetry(() =>
+      new ethers.Contract(CHAINS.arc.swapAddress, ["function totalSwaps() view returns (uint256)"], arcRpc).totalSwaps()
+    );
+
     let totalBridges = 0;
-
     for(const [key, chain] of Object.entries(CHAINS)) {
+      if(!chain.bridgeAddress) continue;
       try {
-        const rpc = new ethers.JsonRpcProvider(chain.rpc);
-        
-        if(chain.swapAddress) {
-          const swaps = await Promise.race([
-            new ethers.Contract(chain.swapAddress, ["function totalSwaps() view returns (uint256)"], rpc).totalSwaps(),
-            new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 5000))
-          ]);
-          totalSwaps += Number(swaps);
-        }
-
-        if(chain.bridgeAddress) {
-          const bridges = await Promise.race([
-            new ethers.Contract(chain.bridgeAddress, ["function totalBridges() view returns (uint256)"], rpc).totalBridges(),
-            new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 5000))
-          ]);
-          totalBridges += Number(bridges);
-        }
+        const rpc = getCachedRpcProvider(key);
+        const bridges = await callWithRetry(() =>
+          new ethers.Contract(chain.bridgeAddress, ["function totalBridges() view returns (uint256)"], rpc).totalBridges()
+        );
+        totalBridges += Number(bridges);
       } catch(e) {}
+      await new Promise(r => setTimeout(r, 300));
     }
 
     const s = document.getElementById('statSwaps');
     const b = document.getElementById('statBridges');
-    if(s) { s.textContent = '0'; animateCount(s, totalSwaps, '', 1500); }
+    if(s) { s.textContent = '0'; animateCount(s, Number(totalSwaps), '', 1500); }
     if(b) { b.textContent = '0'; animateCount(b, totalBridges, '', 1200); }
-
-  } catch(e) {
-    const s = document.getElementById('statSwaps');
-    const b = document.getElementById('statBridges');
-    if(s) s.textContent = '—';
-    if(b) b.textContent = '—';
-  }
+  } catch(e) { console.warn('[Stats]', e.message); }
 }
 function renderTxLog() {
   const el = document.getElementById('txLog');
