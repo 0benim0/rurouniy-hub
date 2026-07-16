@@ -1803,10 +1803,10 @@ document.getElementById('faucetCard').style.display = 'block';
 async function loadRyuBalance() {
   if(!ryuContract || !walletAddress) return;
   try {
-    const bal = await ryuContract.balanceOf(walletAddress);
+    const bal = await callWithRetry(() => ryuContract.balanceOf(walletAddress));
     const fmt = parseFloat(ethers.formatUnits(bal, 18)).toFixed(2);
     document.getElementById('ryuBalance').textContent = fmt + ' RYU';
-  } catch(e) {}
+  } catch(e) { console.warn('[RYU Balance]', e.message); }
 }
 function formatTime(secs) {
   const h = Math.floor(secs/3600);
