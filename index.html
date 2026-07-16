@@ -2017,7 +2017,7 @@ async function callWithRetry(fn, retries = 4, delayMs = 1500) {
       return await fn();
     } catch(e) {
       const msg = (e.message || '') + JSON.stringify(e.info || '');
-      const isLimit = msg.includes('429') || msg.includes('Too Many') || msg.includes('-32011') || msg.includes('request limit');
+      const isLimit = msg.includes('429') || msg.includes('Too Many') || msg.includes('-32011') || msg.includes('request limit') || msg.includes('missing revert data') || e.code === 'CALL_EXCEPTION';
       if(i === retries - 1 || !isLimit) throw e;
       await new Promise(r => setTimeout(r, delayMs * (i + 1)));
     }
