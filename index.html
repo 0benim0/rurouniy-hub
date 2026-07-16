@@ -1675,13 +1675,6 @@ const TOKENS = [
 let currentMode = 'swap';
 let walletAddress = null;
 let provider = null, signer = null;
-const rpcProviderCache = {};
-function getCachedRpcProvider(chainKey) {
-  if(!rpcProviderCache[chainKey]) {
-    rpcProviderCache[chainKey] = new ethers.JsonRpcProvider(CHAINS[chainKey].rpc);
-  }
-  return rpcProviderCache[chainKey];
-}
 let currentChain = 'robinhood';
 let ryuContract = null;
 let fromToken = TOKENS[0];
@@ -1721,7 +1714,7 @@ async function getTokenBalance(token, chainKey) {
     );
 
     const fetchBalance = async () => {
-      const chainRpc = getCachedRpcProvider(chainKey);
+      const chainRpc = new ethers.JsonRpcProvider(chainData.rpc);
 
       if(token.address === 'native') {
         const bal = await chainRpc.getBalance(walletAddress);
@@ -2013,30 +2006,42 @@ function saveStats() {
 }
 async function updateStatsDisplay() {
   try {
-    const arcRpc = new ethers.JsonRpcProvider(CHAINS.arc.rpc);
-    const totalSwaps = await Promise.race([
-      new ethers.Contract(CHAINS.arc.swapAddress, ["function totalSwaps() view returns (uint256)"], arcRpc).totalSwaps(),
-      new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 6000))
-    ]);
-
+    let totalSwaps = 0;
     let totalBridges = 0;
+
     for(const [key, chain] of Object.entries(CHAINS)) {
-      if(!chain.bridgeAddress) continue;
       try {
         const rpc = new ethers.JsonRpcProvider(chain.rpc);
-        const bridges = await Promise.race([
-          new ethers.Contract(chain.bridgeAddress, ["function totalBridges() view returns (uint256)"], rpc).totalBridges(),
-          new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 6000))
-        ]);
-        totalBridges += Number(bridges);
+        
+        if(chain.swapAddress) {
+          const swaps = await Promise.race([
+            new ethers.Contract(chain.swapAddress, ["function totalSwaps() view returns (uint256)"], rpc).totalSwaps(),
+            new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 5000))
+          ]);
+          totalSwaps += Number(swaps);
+        }
+
+        if(chain.bridgeAddress) {
+          const bridges = await Promise.race([
+            new ethers.Contract(chain.bridgeAddress, ["function totalBridges() view returns (uint256)"], rpc).totalBridges(),
+            new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 5000))
+          ]);
+          totalBridges += Number(bridges);
+        }
       } catch(e) {}
     }
 
     const s = document.getElementById('statSwaps');
     const b = document.getElementById('statBridges');
-    if(s && Number(totalSwaps) > 0) { s.textContent = '0'; animateCount(s, Number(totalSwaps), '', 1500); }
-    if(b && totalBridges > 0) { b.textContent = '0'; animateCount(b, totalBridges, '', 1200); }
-  } catch(e) {}
+    if(s) { s.textContent = '0'; animateCount(s, totalSwaps, '', 1500); }
+    if(b) { b.textContent = '0'; animateCount(b, totalBridges, '', 1200); }
+
+  } catch(e) {
+    const s = document.getElementById('statSwaps');
+    const b = document.getElementById('statBridges');
+    if(s) s.textContent = '—';
+    if(b) b.textContent = '—';
+  }
 }
 function renderTxLog() {
   const el = document.getElementById('txLog');
