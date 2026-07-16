@@ -2004,11 +2004,32 @@ function saveStats() {
     localStorage.setItem('ryuSwapTx', JSON.stringify(txLog.slice(0,20)));
   } catch(e) {}
 }
-function updateStatsDisplay() {
-  const s = document.getElementById('statSwaps');
-  const b = document.getElementById('statBridges');
-  if(s) { s.textContent = '0'; animateCount(s, stats.swaps, '', 1500); }
-  if(b) { b.textContent = '0'; animateCount(b, stats.bridges, '', 1200); }
+async function updateStatsDisplay() {
+  try {
+    const arcRpc = new ethers.JsonRpcProvider(CHAINS.arc.rpc);
+    const totalSwaps = await Promise.race([
+      new ethers.Contract(CHAINS.arc.swapAddress, ["function totalSwaps() view returns (uint256)"], arcRpc).totalSwaps(),
+      new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 6000))
+    ]);
+
+    let totalBridges = 0;
+    for(const [key, chain] of Object.entries(CHAINS)) {
+      if(!chain.bridgeAddress) continue;
+      try {
+        const rpc = new ethers.JsonRpcProvider(chain.rpc);
+        const bridges = await Promise.race([
+          new ethers.Contract(chain.bridgeAddress, ["function totalBridges() view returns (uint256)"], rpc).totalBridges(),
+          new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 6000))
+        ]);
+        totalBridges += Number(bridges);
+      } catch(e) {}
+    }
+
+    const s = document.getElementById('statSwaps');
+    const b = document.getElementById('statBridges');
+    if(s && Number(totalSwaps) > 0) { s.textContent = '0'; animateCount(s, Number(totalSwaps), '', 1500); }
+    if(b && totalBridges > 0) { b.textContent = '0'; animateCount(b, totalBridges, '', 1200); }
+  } catch(e) {}
 }
 function renderTxLog() {
   const el = document.getElementById('txLog');
