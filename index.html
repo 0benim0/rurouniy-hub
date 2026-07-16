@@ -2476,6 +2476,7 @@ async function setMax() {
     }
     calcOutput();
   } catch(e) {
+    console.error('[MAX Error]', e);
     showToast('Error reading balance');
   }
 }
