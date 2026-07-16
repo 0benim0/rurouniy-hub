@@ -1675,6 +1675,13 @@ const TOKENS = [
 let currentMode = 'swap';
 let walletAddress = null;
 let provider = null, signer = null;
+const rpcProviderCache = {};
+function getCachedRpcProvider(chainKey) {
+  if(!rpcProviderCache[chainKey]) {
+    rpcProviderCache[chainKey] = new ethers.JsonRpcProvider(CHAINS[chainKey].rpc);
+  }
+  return rpcProviderCache[chainKey];
+}
 let currentChain = 'robinhood';
 let ryuContract = null;
 let fromToken = TOKENS[0];
@@ -1714,7 +1721,7 @@ async function getTokenBalance(token, chainKey) {
     );
 
     const fetchBalance = async () => {
-      const chainRpc = new ethers.JsonRpcProvider(chainData.rpc);
+      const chainRpc = getCachedRpcProvider(chainKey);
 
       if(token.address === 'native') {
         const bal = await chainRpc.getBalance(walletAddress);
