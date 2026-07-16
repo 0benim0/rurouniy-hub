@@ -2693,7 +2693,7 @@ async function doSwap(amt) {
       const memoId = ethers.id(swapMemoString);
       const memoData = ethers.toUtf8Bytes(swapMemoString);
       const memoContract = new ethers.Contract(MEMO_CONTRACT, MEMO_ABI, signer);
-      const tx = await memoContract.memo(chain.swapAddress, swapCalldata, memoId, memoData, { value: amountBN });
+      const tx = await memoContract.memo(chain.swapAddress, swapCalldata, memoId, memoData, { value: amountBN, gasLimit: 500000n });
       await tx.wait();
       window._lastSwapMemo = swapMemoString;
 
@@ -2752,7 +2752,7 @@ async function doSwap(amt) {
       const memoId = ethers.id(swapMemoString);
       const memoData = ethers.toUtf8Bytes(swapMemoString);
       const memoContract = new ethers.Contract(MEMO_CONTRACT, MEMO_ABI, signer);
-      const tx = await memoContract.memo(chain.swapAddress, swapCalldata, memoId, memoData);
+      const tx = await memoContract.memo(chain.swapAddress, swapCalldata, memoId, memoData, { gasLimit: 500000n });
       await tx.wait();
       window._lastSwapMemo = swapMemoString;
     }
