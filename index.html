@@ -2011,7 +2011,7 @@ async function updateStatsDisplay() {
 
     for(const [key, chain] of Object.entries(CHAINS)) {
       try {
-        const rpc = new ethers.JsonRpcProvider(chain.rpc);
+        const rpc = new ethers.JsonRpcProvider(chain.rpc, undefined, { batchMaxCount: 1 });
         
         if(chain.swapAddress) {
           const swaps = await Promise.race([
