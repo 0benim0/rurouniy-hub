@@ -1710,11 +1710,11 @@ async function getTokenBalance(token, chainKey) {
 
     // Use a timeout to avoid hanging
     const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 8000)
+      setTimeout(() => reject(new Error('timeout')), 15000)
     );
 
     const fetchBalance = async () => {
-      const chainRpc = new ethers.JsonRpcProvider(chainData.rpc);
+      const chainRpc = new ethers.JsonRpcProvider(chainData.rpc, undefined, { batchMaxCount: 1 });
 
       if(token.address === 'native') {
         const bal = await chainRpc.getBalance(walletAddress);
