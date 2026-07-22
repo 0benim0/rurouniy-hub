@@ -2632,6 +2632,7 @@ async function connectWallet() {
       await switchToChain('arc');
       updateActionBtn();
     }
+    loadRealBalances();
 
   } catch(e) {
     showToast('Error: ' + (e.message || 'Connection failed').slice(0,60));
