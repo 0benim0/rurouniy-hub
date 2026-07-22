@@ -3144,11 +3144,12 @@ async function doLockMintBridge(amt, chain) {
     const tokenAddr = fromToken.address === 'ryu' ? chain.ryuAddress : fromToken.address;
     if(!tokenAddr) { showToast('Token not available on this chain'); hideBridgeOverlay(); return; }
 
+    const tokenContractRead = new ethers.Contract(tokenAddr, ERC20_ABI, getRpcProvider(fromChain));
     const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
-    const decimals = await tokenContract.decimals();
+    const decimals = await tokenContractRead.decimals();
     const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
-    const tokenBalance = await tokenContract.balanceOf(walletAddress);
+    const tokenBalance = await tokenContractRead.balanceOf(walletAddress);
     if(tokenBalance < amountBN) {
       showToast(`❌ Insufficient balance — you have ${parseFloat(ethers.formatUnits(tokenBalance, decimals)).toFixed(4)} ${fromToken.symbol}, need ${amt}`);
       hideBridgeOverlay();
@@ -3171,7 +3172,7 @@ async function doLockMintBridge(amt, chain) {
 
       // Simulate before sending (per ARC docs recommendation)
       const aggregateDataLock = multicallC.interface.encodeFunctionData('aggregate3', [batchCallsLock]);
-      const simResultLock = await provider.call({ from: walletAddress, to: MULTICALL3FROM, data: aggregateDataLock });
+      const simResultLock = await getRpcProvider(fromChain).call({ from: walletAddress, to: MULTICALL3FROM, data: aggregateDataLock });
       const [simulatedResultsLock] = multicallC.interface.decodeFunctionResult('aggregate3', simResultLock);
       if (!simulatedResultsLock.every(r => r.success)) {
         throw new Error('Batch simulation failed — one or more subcalls would revert');
@@ -3182,7 +3183,7 @@ async function doLockMintBridge(amt, chain) {
     } else {
       setBridgeStep(STEPS_RYU, 0, '✍️ Open wallet — approve token...');
       showToast('Step 1/3 — Approve...');
-      const allowance = await tokenContract.allowance(walletAddress, chain.bridgeAddress);
+      const allowance = await tokenContractRead.allowance(walletAddress, chain.bridgeAddress);
       if(allowance < amountBN) {
         const approveTx = await tokenContract.approve(chain.bridgeAddress, amountBN);
         await approveTx.wait();
