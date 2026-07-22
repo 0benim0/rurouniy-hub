@@ -1583,7 +1583,17 @@ const providerCache = {};
 function getRpcProvider(chainKey) {
   if (!providerCache[chainKey]) {
     const c = CHAINS[chainKey];
-    providerCache[chainKey] = new ethers.JsonRpcProvider(c.rpc, c.chainIdDec, { batchMaxCount: 1 });
+    const p = new ethers.JsonRpcProvider(c.rpc, c.chainIdDec, { batchMaxCount: 1 });
+    if (chainKey === 'arc') {
+      const originalSend = p.send.bind(p);
+      let queue = Promise.resolve();
+      p.send = (method, params) => {
+        const run = queue.then(() => originalSend(method, params));
+        queue = run.catch(() => {}).then(() => new Promise(r => setTimeout(r, 2100)));
+        return run;
+      };
+    }
+    providerCache[chainKey] = p;
   }
   return providerCache[chainKey];
 }
