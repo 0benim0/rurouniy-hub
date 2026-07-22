@@ -2737,18 +2737,19 @@ async function doSwap(amt) {
 
     } else {
       // Token → Token
+      const tokenContractRead = new ethers.Contract(tokenInAddr, ERC20_APPROVE_ABI, getRpcProvider('arc'));
       const tokenContract = new ethers.Contract(tokenInAddr, ERC20_APPROVE_ABI, signer);
       const decimals = Number(fromToken.decimals) || 18;
       const amountBN = ethers.parseUnits(amt.toString(), decimals);
 
-      const tokenBalance = await tokenContract.balanceOf(walletAddress);
+      const tokenBalance = await tokenContractRead.balanceOf(walletAddress);
       if(tokenBalance < amountBN) {
         showToast(`❌ Insufficient balance — you have ${parseFloat(ethers.formatUnits(tokenBalance, decimals)).toFixed(4)} ${fromToken.symbol}, need ${amt}`);
         return;
       }
 
       btn.innerHTML = '<span class="hourglass">⏳</span> Checking Approve...';
-      const allowance = await tokenContract.allowance(walletAddress, chain.swapAddress);
+      const allowance = await tokenContractRead.allowance(walletAddress, chain.swapAddress);
       if(allowance < amountBN) {
         btn.innerHTML = '<span class="hourglass">⏳</span> Step 1/2 — Approve...';
         const approveTx = await tokenContract.approve(chain.swapAddress, amountBN * 2n);
