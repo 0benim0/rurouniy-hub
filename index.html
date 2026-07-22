@@ -1735,13 +1735,10 @@ async function getTokenBalance(token, chainKey) {
           : (chainToken ? chainToken.address : token.address);
         if(!addr || addr === null) return '—';
         const c = new ethers.Contract(addr, [
-          "function balanceOf(address) view returns (uint256)",
-          "function decimals() view returns (uint8)"
+          "function balanceOf(address) view returns (uint256)"
         ], chainRpc);
-        const [bal, dec] = await Promise.all([
-          c.balanceOf(walletAddress),
-          c.decimals()
-        ]);
+        const bal = await c.balanceOf(walletAddress);
+        const dec = token.decimals;
         return parseFloat(ethers.formatUnits(bal, dec)).toFixed(4);
       }
     };
