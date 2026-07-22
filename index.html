@@ -1583,7 +1583,7 @@ const providerCache = {};
 function getRpcProvider(chainKey) {
   if (!providerCache[chainKey]) {
     const c = CHAINS[chainKey];
-    providerCache[chainKey] = new ethers.JsonRpcProvider(c.rpc, c.chainIdDec, { batchMaxCount: 1, staticNetwork: true });
+    providerCache[chainKey] = new ethers.JsonRpcProvider(c.rpc, c.chainIdDec, { batchMaxCount: 1 });
   }
   return providerCache[chainKey];
 }
