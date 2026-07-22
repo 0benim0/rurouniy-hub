@@ -1579,6 +1579,14 @@ const CHAINS = {
     usdcAddress: '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
   }
 };
+const providerCache = {};
+function getRpcProvider(chainKey) {
+  if (!providerCache[chainKey]) {
+    const c = CHAINS[chainKey];
+    providerCache[chainKey] = new ethers.JsonRpcProvider(c.rpc, c.chainIdDec, { batchMaxCount: 1, staticNetwork: true });
+  }
+  return providerCache[chainKey];
+}
 const MULTICALL3FROM = '0x522fAf9A91c41c443c66765030741e4AaCe147D0';
 const MULTICALL3FROM_ABI = ["function aggregate3((address target, bool allowFailure, bytes callData)[] calls) external returns ((bool success, bytes returnData)[] returnData)"];
 const MEMO_CONTRACT = '0x5294E9927c3306DcBaDb03fe70b92e01cCede505';
@@ -1714,7 +1722,7 @@ async function getTokenBalance(token, chainKey) {
     );
 
     const fetchBalance = async () => {
-      const chainRpc = new ethers.JsonRpcProvider(chainData.rpc, undefined, { batchMaxCount: 1 });
+      const chainRpc = getRpcProvider(chainKey);
 
       if(token.address === 'native') {
         const bal = await chainRpc.getBalance(walletAddress);
@@ -2011,7 +2019,7 @@ async function updateStatsDisplay() {
 
     for(const [key, chain] of Object.entries(CHAINS)) {
       try {
-        const rpc = new ethers.JsonRpcProvider(chain.rpc, undefined, { batchMaxCount: 1 });
+        const rpc = getRpcProvider(key);
         
         if(chain.swapAddress) {
           const swaps = await Promise.race([
