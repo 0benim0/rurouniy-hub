@@ -1776,8 +1776,8 @@ async function loadRealBalances() {
   }).catch(() => {
     const el = document.getElementById('fromBalance');
     if(el) el.textContent = '—';
-  });
-  getTokenBalance(tt, tck).then(bal => {
+  }).then(() => new Promise(r => setTimeout(r, 600)))
+    .then(() => getTokenBalance(tt, tck)).then(bal => {
     const el = document.getElementById('toBalance');
     if(el) el.textContent = bal === '—' ? '—' : bal + ' ' + tt.symbol;
   }).catch(() => {
@@ -2623,6 +2623,7 @@ async function connectWallet() {
       document.getElementById('toTokenName').textContent = toToken.symbol;
       document.getElementById('toTokenFull').textContent = toToken.name;
       await switchToChain('arc');
+      updateActionBtn();
     }
 
   } catch(e) {
