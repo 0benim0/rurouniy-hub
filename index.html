@@ -651,7 +651,7 @@ main {
 @keyframes statShimmer { 0%{left:-100%} 100%{left:200%} }
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
+  grid-template-columns: repeat(2, minmax(0,1fr));
   gap: 10px;
   margin-top: 20px;
   width: 100%;
@@ -1362,13 +1362,6 @@ for(var i=0;i<18;i++){
     <div class="stat-mini-value" id="statBridges">0</div>
     <div class="stat-mini-sub"><span class="stat-mini-dot"></span>on-chain</div>
   </div>
-  
-  <div class="stat-mini s-teal">
-    <span class="stat-mini-icon">⚔</span>
-    <div class="stat-mini-label">RYU Balance</div>
-    <div class="stat-mini-value" id="ryuBalance">—</div>
-    <div class="stat-mini-sub"><span class="stat-mini-dot"></span>your wallet</div>
-  </div>
 </div>
 
   <!-- RYU FAUCET CARD -->
@@ -1813,7 +1806,8 @@ async function loadRyuBalance() {
   try {
     const bal = await ryuContract.balanceOf(walletAddress);
     const fmt = parseFloat(ethers.formatUnits(bal, 18)).toFixed(2);
-    document.getElementById('ryuBalance').textContent = fmt + ' RYU';
+    const el = document.getElementById('ryuBalance');
+    if(el) el.textContent = fmt + ' RYU';
   } catch(e) {}
 }
 function formatTime(secs) {
